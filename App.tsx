@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Users, Shirt, Wallet, Trophy, Bell, Menu, Plus, ArrowLeftRight, Settings, Send, Globe, BarChart2, TrendingUp, TrendingDown, Shield, RefreshCw, MessageCircle, Star, Zap, Lock, CheckCircle, AlertTriangle, AlertOctagon, PlayCircle, MapPin, Building2, GraduationCap } from 'lucide-react';
-import { MOCK_PLAYERS, MOCK_LEAGUES, MOCK_TRANSACTIONS, CURRENCY_SYMBOL, TRANSLATIONS, MOCK_DAILY_QUESTS, MOCK_TRIVIA, MOCK_GAMEWEEKS, LEVELS_CONFIG, getTeamFixtures } from './constants';
-import { Player, Position, GameweekStatus, League, Notification, ChipType } from './types';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Users, Shirt, Wallet, Trophy, Bell, Menu, Plus, ArrowLeftRight, Settings, Send, Globe, BarChart2, TrendingUp, TrendingDown, Shield, RefreshCw, MessageCircle, Star, Zap, Lock, CheckCircle, AlertTriangle, AlertOctagon, PlayCircle, MapPin, Building2, GraduationCap, Coins } from 'lucide-react';
+import { MOCK_PLAYERS, MOCK_LEAGUES, MOCK_TRANSACTIONS, CURRENCY_SYMBOL, TRANSLATIONS, MOCK_DAILY_QUESTS, MOCK_TRIVIA, MOCK_GAMEWEEKS, LEVELS_CONFIG, getTeamFixtures, TEAMS } from './constants';
+import { Player, Position, GameweekStatus, League, Notification, ChipType, DailyQuest } from './types';
 import Pitch from './components/Pitch';
 import WalletModal from './components/WalletModal';
 import TransferMarket from './components/TransferMarket';
@@ -174,6 +174,7 @@ const App: React.FC = () => {
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [walletMode, setWalletMode] = useState<'deposit' | 'withdraw'>('deposit');
   const [balance, setBalance] = useState(150); // ETB Mock Balance
+  const [coins, setCoins] = useState(0); // Virtual currency (non-monetary)
   
   // Data State
   const [squad, setSquad] = useState<Player[]>(MOCK_PLAYERS);
@@ -206,6 +207,9 @@ const App: React.FC = () => {
   const [userLevel, setUserLevel] = useState(5);
   const [userXP, setUserXP] = useState(1250);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedAvatarId, setSelectedAvatarId] = useState('av1'); // Currently selected avatar
+  const [dailyQuests, setDailyQuests] = useState<DailyQuest[]>(MOCK_DAILY_QUESTS);
+  const [loginStreak, setLoginStreak] = useState(1);
   const [isCreateLeagueOpen, setIsCreateLeagueOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isFlashScoutOpen, setIsFlashScoutOpen] = useState(false);
@@ -250,6 +254,67 @@ const App: React.FC = () => {
           setTutorialStep('WELCOME');
       }
   }, []);
+
+  // Initialize Login Streak from localStorage
+  useEffect(() => {
+      const today = new Date().toDateString();
+      const lastLogin = localStorage.getItem('fpl_eth_last_login');
+      const storedStreak = parseInt(localStorage.getItem('fpl_eth_login_streak') || '0', 10);
+      const storedCoins = parseInt(localStorage.getItem('fpl_eth_coins') || '0', 10);
+      const storedAvatarId = localStorage.getItem('fpl_eth_avatar') || 'av1';
+
+      setCoins(storedCoins);
+      setSelectedAvatarId(storedAvatarId);
+
+      if (lastLogin === today) {
+          // Already logged in today
+          setLoginStreak(storedStreak);
+      } else {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+
+          if (lastLogin === yesterday.toDateString()) {
+              // Consecutive day - increment streak
+              const newStreak = storedStreak + 1;
+              setLoginStreak(newStreak);
+              localStorage.setItem('fpl_eth_login_streak', newStreak.toString());
+
+              // Award streak bonuses
+              let bonusCoins = 5; // Daily login bonus
+              if (newStreak === 7) bonusCoins = 50;
+              else if (newStreak === 14) bonusCoins = 100;
+              else if (newStreak === 30) bonusCoins = 200;
+
+              if (bonusCoins > 5) {
+                  setTimeout(() => showToast(`${newStreak}-day streak! +${bonusCoins} coins!`, 'success'), 1000);
+              }
+              setCoins(prev => {
+                  const newCoins = prev + bonusCoins;
+                  localStorage.setItem('fpl_eth_coins', newCoins.toString());
+                  return newCoins;
+              });
+          } else {
+              // Streak broken - reset to 1
+              setLoginStreak(1);
+              localStorage.setItem('fpl_eth_login_streak', '1');
+          }
+          localStorage.setItem('fpl_eth_last_login', today);
+      }
+  }, []);
+
+  // Auto Level-Up based on XP thresholds
+  useEffect(() => {
+      const newLevel = LEVELS_CONFIG.reduce((acc, lvl) => {
+          if (userXP >= lvl.min_xp) return lvl.level;
+          return acc;
+      }, 1);
+
+      if (newLevel > userLevel) {
+          setUserLevel(newLevel);
+          const levelInfo = LEVELS_CONFIG.find(l => l.level === newLevel);
+          showToast(`Level Up! You are now a ${levelInfo?.title || 'Manager'}!`, 'success');
+      }
+  }, [userXP, userLevel]);
 
   // Derived State: Squad Value & Validation
   const teamValue = squad.reduce((acc, p) => acc + p.price, 0).toFixed(1);
@@ -800,6 +865,65 @@ const App: React.FC = () => {
     setLanguage(prev => prev === 'en' ? 'am' : 'en');
   };
 
+  // Handle Trivia Reward Claim
+  const handleTriviaComplete = useCallback((score: number) => {
+      const reward = (score * 10) + 10;
+      setCoins(prev => {
+          const newCoins = prev + reward;
+          localStorage.setItem('fpl_eth_coins', newCoins.toString());
+          return newCoins;
+      });
+      showToast(`+${reward} coins earned from trivia!`, 'success');
+      setShowTrivia(false);
+  }, []);
+
+  // Handle Quest Completion
+  const handleQuestComplete = useCallback((questId: string) => {
+      setDailyQuests(prev => prev.map(q => {
+          if (q.id === questId && !q.is_completed) {
+              // Apply reward
+              if (q.reward_type === 'xp') {
+                  setUserXP(prevXP => prevXP + q.reward_amount);
+                  showToast(`+${q.reward_amount} XP earned!`, 'success');
+              } else if (q.reward_type === 'coins') {
+                  setCoins(prevCoins => {
+                      const newCoins = prevCoins + q.reward_amount;
+                      localStorage.setItem('fpl_eth_coins', newCoins.toString());
+                      return newCoins;
+                  });
+                  showToast(`+${q.reward_amount} coins earned!`, 'success');
+              }
+              return { ...q, is_completed: true };
+          }
+          return q;
+      }));
+  }, []);
+
+  // Handle Avatar Selection
+  const handleAvatarSelect = useCallback((avatarId: string) => {
+      setSelectedAvatarId(avatarId);
+      localStorage.setItem('fpl_eth_avatar', avatarId);
+      showToast('Avatar updated!', 'success');
+  }, []);
+
+  // Handle Flash Scout action
+  const handleFlashScoutAction = useCallback((playerId: number) => {
+      // Add player to a watchlist or initiate transfer flow
+      const player = MOCK_PLAYERS.find(p => p.id === playerId);
+      if (player) {
+          setPlayerToSell(null); // Clear any existing selection
+          setActiveTab('transfers');
+          showToast(`Scouting ${player.name}. Find them in transfers!`, 'success');
+      }
+      setIsFlashScoutOpen(false);
+  }, []);
+
+  // Handle League Stake
+  const handleLeagueStake = useCallback((amount: number, multiplier: number) => {
+      const potentialWin = Math.floor(amount * multiplier);
+      showToast(`Staked ${amount} ETB! Win ${potentialWin} ETB if you top GW38!`, 'success');
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20 max-w-md mx-auto relative border-x border-gray-200 shadow-2xl overflow-hidden">
       
@@ -867,7 +991,12 @@ const App: React.FC = () => {
                 <Globe size={14} />
                 {language.toUpperCase()}
              </button>
-            <button 
+             {/* Coins Display */}
+             <div className="flex items-center gap-1 bg-yellow-500/20 px-2 py-1 rounded-full">
+               <Coins size={12} className="text-yellow-400" />
+               <span className="text-xs font-bold text-yellow-400">{coins}</span>
+             </div>
+            <button
               onClick={() => { setActiveTab('wallet'); setIsWalletOpen(true); setWalletMode('deposit'); }}
               className="flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full hover:bg-white/20 transition"
             >
@@ -903,7 +1032,12 @@ const App: React.FC = () => {
           <div className="animate-in fade-in duration-300 space-y-6">
             
             {/* Daily Hub (New Feature) */}
-            <DailyHub streak={5} quests={MOCK_DAILY_QUESTS} onOpenTrivia={() => setShowTrivia(true)} />
+            <DailyHub
+              streak={loginStreak}
+              quests={dailyQuests}
+              onOpenTrivia={() => setShowTrivia(true)}
+              onQuestAction={handleQuestComplete}
+            />
 
             {/* Gameweek Deadline Card */}
             <div className={`rounded-2xl p-5 text-white shadow-lg relative overflow-hidden transition-all duration-500 ${gameweekStatus === GameweekStatus.ACTIVE ? 'bg-gradient-to-r from-pl-purple to-indigo-900' : 'bg-red-800'}`}>
@@ -1274,10 +1408,11 @@ const App: React.FC = () => {
         onAction={handlePlayerAction}
       />
 
-      <TriviaModal 
+      <TriviaModal
         isOpen={showTrivia}
         onClose={() => setShowTrivia(false)}
         questions={MOCK_TRIVIA}
+        onClaimReward={handleTriviaComplete}
       />
 
       <LeagueChatModal
@@ -1286,17 +1421,22 @@ const App: React.FC = () => {
         league={activeLeagueChat}
       />
 
-      <LeagueDetailModal 
+      <LeagueDetailModal
         isOpen={!!selectedLeagueDetail}
         onClose={() => setSelectedLeagueDetail(null)}
         league={selectedLeagueDetail}
+        onStake={handleLeagueStake}
+        userBalance={balance}
       />
 
-      <ProfileModal 
-        isOpen={isProfileOpen} 
+      <ProfileModal
+        isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         level={userLevel}
         xp={userXP}
+        coins={coins}
+        selectedAvatarId={selectedAvatarId}
+        onAvatarSelect={handleAvatarSelect}
       />
 
       <CreateLeagueModal 
@@ -1311,10 +1451,10 @@ const App: React.FC = () => {
         notifications={mockNotifications}
       />
 
-      <FlashScoutModal 
+      <FlashScoutModal
         isOpen={isFlashScoutOpen}
         onClose={() => setIsFlashScoutOpen(false)}
-        onAction={() => showToast("Scout report saved!")}
+        onAction={handleFlashScoutAction}
       />
 
     </div>

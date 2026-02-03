@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Trophy, Shield, Medal, Lock, Star, ChevronRight, User } from 'lucide-react';
+import { X, Trophy, Shield, Medal, Lock, Star, ChevronRight, User, Coins, Check } from 'lucide-react';
 import { LEVELS_CONFIG, MOCK_BADGES, MOCK_AVATARS } from '../constants';
 import { Badge, AvatarItem } from '../types';
 
@@ -8,16 +8,20 @@ interface ProfileModalProps {
   onClose: () => void;
   level: number;
   xp: number;
+  coins?: number;
+  selectedAvatarId?: string;
+  onAvatarSelect?: (avatarId: string) => void;
 }
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, level, xp }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, level, xp, coins = 0, selectedAvatarId = 'av1', onAvatarSelect }) => {
   const [activeTab, setActiveTab] = useState<'Overview' | 'Badges' | 'Avatars'>('Overview');
 
   if (!isOpen) return null;
 
   const currentLevelInfo = LEVELS_CONFIG.find(l => l.level === level) || LEVELS_CONFIG[0];
   const nextLevelInfo = LEVELS_CONFIG.find(l => l.level > level);
-  
+  const selectedAvatar = MOCK_AVATARS.find(a => a.id === selectedAvatarId) || MOCK_AVATARS[0];
+
   // XP Progress Calculation
   const minXp = currentLevelInfo.min_xp;
   const maxXp = currentLevelInfo.max_xp;
@@ -43,13 +47,19 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, level, xp 
                 <X size={20} />
              </button>
              <div className="w-20 h-20 mx-auto bg-white rounded-full p-1 mb-3 relative">
-                 <img src={MOCK_AVATARS[0].url} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                 <img src={selectedAvatar.url} alt="Profile" className="w-full h-full rounded-full object-cover" />
                  <div className="absolute -bottom-2 -right-2 bg-pl-green text-pl-purple font-bold w-8 h-8 rounded-full flex items-center justify-center border-2 border-white text-xs">
                      {level}
                  </div>
              </div>
              <h2 className="text-xl font-bold">{currentLevelInfo.title}</h2>
-             <div className="text-sm opacity-80 mt-1">{xp.toLocaleString()} XP</div>
+             <div className="flex items-center justify-center gap-4 mt-2">
+                 <div className="text-sm opacity-80">{xp.toLocaleString()} XP</div>
+                 <div className="flex items-center gap-1 bg-yellow-500/30 px-2 py-0.5 rounded-full">
+                     <Coins size={12} className="text-yellow-300" />
+                     <span className="text-xs font-bold text-yellow-300">{coins.toLocaleString()}</span>
+                 </div>
+             </div>
         </div>
 
         {/* Navigation Tabs */}
@@ -125,19 +135,36 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, level, xp 
                 <div className="grid grid-cols-3 gap-3">
                     {MOCK_AVATARS.map((avatar) => {
                         const isLocked = level < avatar.min_level;
+                        const isSelected = avatar.id === selectedAvatarId;
                         return (
-                            <div key={avatar.id} className="relative flex flex-col items-center">
-                                <div className={`w-16 h-16 rounded-full p-1 border-2 ${isLocked ? 'border-gray-200 bg-gray-100 opacity-70' : 'border-pl-purple cursor-pointer hover:scale-105 transition'}`}>
+                            <button
+                                key={avatar.id}
+                                onClick={() => !isLocked && onAvatarSelect && onAvatarSelect(avatar.id)}
+                                disabled={isLocked}
+                                className="relative flex flex-col items-center focus:outline-none"
+                            >
+                                <div className={`w-16 h-16 rounded-full p-1 border-2 relative ${
+                                    isLocked
+                                        ? 'border-gray-200 bg-gray-100 opacity-70'
+                                        : isSelected
+                                            ? 'border-pl-green ring-2 ring-pl-green ring-offset-2'
+                                            : 'border-pl-purple cursor-pointer hover:scale-105 transition'
+                                }`}>
                                     <img src={avatar.url} alt={avatar.name} className={`w-full h-full rounded-full object-cover ${isLocked ? 'grayscale' : ''}`} />
                                     {isLocked && (
                                         <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full">
                                             <Lock size={16} className="text-white" />
                                         </div>
                                     )}
+                                    {isSelected && !isLocked && (
+                                        <div className="absolute -bottom-1 -right-1 bg-pl-green text-white rounded-full p-0.5">
+                                            <Check size={12} />
+                                        </div>
+                                    )}
                                 </div>
                                 <span className="text-[10px] font-bold mt-1 text-center text-gray-700">{avatar.name}</span>
                                 {isLocked && <span className="text-[9px] text-red-500">Lvl {avatar.min_level}</span>}
-                            </div>
+                            </button>
                         )
                     })}
                 </div>

@@ -6,9 +6,10 @@ interface TriviaModalProps {
   isOpen: boolean;
   onClose: () => void;
   questions: TriviaQuestion[];
+  onClaimReward?: (score: number) => void;
 }
 
-const TriviaModal: React.FC<TriviaModalProps> = ({ isOpen, onClose, questions }) => {
+const TriviaModal: React.FC<TriviaModalProps> = ({ isOpen, onClose, questions, onClaimReward }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -96,7 +97,10 @@ const TriviaModal: React.FC<TriviaModalProps> = ({ isOpen, onClose, questions })
                         <div className="text-xl font-bold text-pl-purple">+{(score * 10) + 10} Coins</div>
                     </div>
 
-                    <button onClick={onClose} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-blue-700 transition">
+                    <button
+                        onClick={() => onClaimReward ? onClaimReward(score) : onClose()}
+                        className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-blue-700 transition"
+                    >
                         Claim Reward
                     </button>
                 </div>

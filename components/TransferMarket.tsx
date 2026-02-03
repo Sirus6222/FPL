@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { Search, Filter, ArrowRight, X, AlertTriangle, Coins, Users, TrendingUp, TrendingDown, Minus, Lock } from 'lucide-react';
+import { Search, Filter, ArrowRight, X, AlertTriangle, Coins, Users, TrendingUp, TrendingDown, Minus, Lock, ChevronDown } from 'lucide-react';
 import { Player, Position } from '../types';
-import { MOCK_PLAYERS } from '../constants'; // In real app, this would be a full player database
+import { MOCK_PLAYERS, TEAMS } from '../constants'; // In real app, this would be a full player database
 
 interface TransferMarketProps {
   onBuy: (player: Player) => void;
@@ -17,6 +17,8 @@ interface TransferMarketProps {
 const TransferMarket: React.FC<TransferMarketProps> = ({ onBuy, currentBudget, squad, playerToSell, onCancelSell, sellingPriceOfOutPlayer, isLocked }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPos, setFilterPos] = useState<Position | 'ALL'>('ALL');
+  const [filterTeam, setFilterTeam] = useState<string>('ALL');
+  const [showTeamDropdown, setShowTeamDropdown] = useState(false);
 
   if (isLocked) {
       return (
@@ -42,11 +44,12 @@ const TransferMarket: React.FC<TransferMarketProps> = ({ onBuy, currentBudget, s
     // Basic Filters
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.team.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPos = activeFilterPos === 'ALL' || p.position === activeFilterPos;
-    
+    const matchesTeam = filterTeam === 'ALL' || p.team === filterTeam;
+
     // Don't show players already in squad
     const inSquad = squad.some(sp => sp.id === p.id);
 
-    return matchesSearch && matchesPos && !inSquad;
+    return matchesSearch && matchesPos && matchesTeam && !inSquad;
   });
 
   // Helper to check team count for a specific team
@@ -137,6 +140,43 @@ const TransferMarket: React.FC<TransferMarketProps> = ({ onBuy, currentBudget, s
             ))}
             </div>
         )}
+
+        {/* Team Filter Dropdown */}
+        <div className="relative mt-2">
+            <button
+                onClick={() => setShowTeamDropdown(!showTeamDropdown)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm"
+            >
+                <span className="flex items-center gap-2">
+                    <Filter size={14} className="text-gray-400" />
+                    <span className={filterTeam === 'ALL' ? 'text-gray-500' : 'text-gray-800 font-medium'}>
+                        {filterTeam === 'ALL' ? 'All Teams' : TEAMS.find(t => t.team_id === filterTeam)?.name || filterTeam}
+                    </span>
+                </span>
+                <ChevronDown size={14} className={`text-gray-400 transition-transform ${showTeamDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showTeamDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-30 max-h-48 overflow-y-auto">
+                    <button
+                        onClick={() => { setFilterTeam('ALL'); setShowTeamDropdown(false); }}
+                        className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${filterTeam === 'ALL' ? 'bg-pl-purple/10 text-pl-purple font-bold' : 'text-gray-700'}`}
+                    >
+                        All Teams
+                    </button>
+                    {TEAMS.map(team => (
+                        <button
+                            key={team.team_id}
+                            onClick={() => { setFilterTeam(team.team_id); setShowTeamDropdown(false); }}
+                            className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${filterTeam === team.team_id ? 'bg-pl-purple/10 text-pl-purple font-bold' : 'text-gray-700'}`}
+                        >
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: team.color }}></div>
+                            {team.name}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
       </div>
 
       {/* Player List */}
