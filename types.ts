@@ -161,7 +161,7 @@ export interface Player {
   
   // Market
   selected_by_percent: number;
-  price_change_this_week: number;
+  price_change_this_week?: number;
   
   // UI/Extra
   image: string; // photo_url
