@@ -208,6 +208,11 @@ const App: React.FC = () => {
   const [userXP, setUserXP] = useState(1250);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedAvatarId, setSelectedAvatarId] = useState('av1'); // Currently selected avatar
+  const [ownedAvatars, setOwnedAvatars] = useState<string[]>(() => {
+    // Load owned avatars from localStorage or default to free avatar
+    const saved = localStorage.getItem('fpl_eth_owned_avatars');
+    return saved ? JSON.parse(saved) : ['av1'];
+  });
   const [dailyQuests, setDailyQuests] = useState<DailyQuest[]>(MOCK_DAILY_QUESTS);
   const [loginStreak, setLoginStreak] = useState(1);
   const [isCreateLeagueOpen, setIsCreateLeagueOpen] = useState(false);
@@ -906,6 +911,36 @@ const App: React.FC = () => {
       showToast('Avatar updated!', 'success');
   }, []);
 
+  // Handle Avatar Purchase
+  const handlePurchaseAvatar = useCallback((avatarId: string, price: number): boolean => {
+      if (coins < price) {
+          return false;
+      }
+      // Deduct coins
+      setCoins(prev => {
+          const newCoins = prev - price;
+          localStorage.setItem('fpl_eth_coins', newCoins.toString());
+          return newCoins;
+      });
+      // Add to owned avatars
+      setOwnedAvatars(prev => {
+          const updated = [...prev, avatarId];
+          localStorage.setItem('fpl_eth_owned_avatars', JSON.stringify(updated));
+          return updated;
+      });
+      return true;
+  }, [coins]);
+
+  // Handle Coin Purchase (ETB to Coins)
+  const handlePurchaseCoins = useCallback((coinsAmount: number, etbPrice: number) => {
+      setCoins(prev => {
+          const newCoins = prev + coinsAmount;
+          localStorage.setItem('fpl_eth_coins', newCoins.toString());
+          return newCoins;
+      });
+      showToast(`+${coinsAmount} coins added!`, 'success');
+  }, []);
+
   // Handle Flash Scout action
   const handleFlashScoutAction = useCallback((playerId: number) => {
       // Add player to a watchlist or initiate transfer flow
@@ -1394,12 +1429,14 @@ const App: React.FC = () => {
       </nav>
 
       {/* Modals */}
-      <WalletModal 
-        isOpen={isWalletOpen} 
-        onClose={() => setIsWalletOpen(false)} 
+      <WalletModal
+        isOpen={isWalletOpen}
+        onClose={() => setIsWalletOpen(false)}
         onTransaction={handleTransaction}
         initialMode={walletMode}
         balance={balance}
+        coins={coins}
+        onPurchaseCoins={handlePurchaseCoins}
       />
 
       <PlayerDetailModal 
@@ -1437,6 +1474,8 @@ const App: React.FC = () => {
         coins={coins}
         selectedAvatarId={selectedAvatarId}
         onAvatarSelect={handleAvatarSelect}
+        ownedAvatars={ownedAvatars}
+        onPurchaseAvatar={handlePurchaseAvatar}
       />
 
       <CreateLeagueModal 

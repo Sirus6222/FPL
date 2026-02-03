@@ -101,11 +101,15 @@ export const MOCK_BADGES: Badge[] = [
 ];
 
 export const MOCK_AVATARS: AvatarItem[] = [
-  { id: "av1", name: "Default Kit", url: "https://ui-avatars.com/api/?name=Manager&background=0D8ABC&color=fff", min_level: 1, is_premium: false },
-  { id: "av2", name: "Ethio Coffee", url: "https://ui-avatars.com/api/?name=EC&background=5D4037&color=fff", min_level: 10, is_premium: false },
-  { id: "av3", name: "St. George", url: "https://ui-avatars.com/api/?name=SG&background=FFD700&color=000", min_level: 10, is_premium: false },
-  { id: "av4", name: "Lion of Judah", url: "https://ui-avatars.com/api/?name=Lion&background=FF2882&color=fff", min_level: 20, is_premium: true },
-  { id: "av5", name: "Walia Ibex", url: "https://ui-avatars.com/api/?name=Ibex&background=00FF85&color=000", min_level: 50, is_premium: true },
+  { id: "av1", name: "Default Kit", url: "https://ui-avatars.com/api/?name=Manager&background=0D8ABC&color=fff", min_level: 1, is_premium: false, price: 0 },
+  { id: "av2", name: "Ethio Coffee", url: "https://ui-avatars.com/api/?name=EC&background=5D4037&color=fff", min_level: 1, is_premium: false, price: 100 },
+  { id: "av3", name: "St. George", url: "https://ui-avatars.com/api/?name=SG&background=FFD700&color=000", min_level: 5, is_premium: false, price: 200 },
+  { id: "av4", name: "Ethiopia FC", url: "https://ui-avatars.com/api/?name=ETH&background=006B3F&color=fff", min_level: 5, is_premium: false, price: 200 },
+  { id: "av5", name: "Blue Nile", url: "https://ui-avatars.com/api/?name=BN&background=1E90FF&color=fff", min_level: 10, is_premium: false, price: 350 },
+  { id: "av6", name: "Addis Gold", url: "https://ui-avatars.com/api/?name=AG&background=DAA520&color=000", min_level: 10, is_premium: false, price: 350 },
+  { id: "av7", name: "Lion of Judah", url: "https://ui-avatars.com/api/?name=Lion&background=FF2882&color=fff", min_level: 20, is_premium: true, price: 500 },
+  { id: "av8", name: "Walia Ibex", url: "https://ui-avatars.com/api/?name=Ibex&background=00FF85&color=000", min_level: 20, is_premium: true, price: 500 },
+  { id: "av9", name: "Crown Master", url: "https://ui-avatars.com/api/?name=CM&background=8B008B&color=FFD700", min_level: 50, is_premium: true, price: 1000 },
 ];
 
 export const MOCK_DAILY_QUESTS: DailyQuest[] = [

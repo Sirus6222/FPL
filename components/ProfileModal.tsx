@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Trophy, Shield, Medal, Lock, Star, ChevronRight, User, Coins, Check } from 'lucide-react';
+import { X, Trophy, Shield, Medal, Lock, Star, ChevronRight, User, Coins, Check, ShoppingBag } from 'lucide-react';
 import { LEVELS_CONFIG, MOCK_BADGES, MOCK_AVATARS } from '../constants';
 import { Badge, AvatarItem } from '../types';
 
@@ -11,10 +11,36 @@ interface ProfileModalProps {
   coins?: number;
   selectedAvatarId?: string;
   onAvatarSelect?: (avatarId: string) => void;
+  ownedAvatars?: string[]; // IDs of avatars the user owns
+  onPurchaseAvatar?: (avatarId: string, price: number) => boolean; // Returns true if purchase successful
 }
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, level, xp, coins = 0, selectedAvatarId = 'av1', onAvatarSelect }) => {
-  const [activeTab, setActiveTab] = useState<'Overview' | 'Badges' | 'Avatars'>('Overview');
+const ProfileModal: React.FC<ProfileModalProps> = ({
+  isOpen,
+  onClose,
+  level,
+  xp,
+  coins = 0,
+  selectedAvatarId = 'av1',
+  onAvatarSelect,
+  ownedAvatars = ['av1'], // Default: user owns the free avatar
+  onPurchaseAvatar
+}) => {
+  const [activeTab, setActiveTab] = useState<'Overview' | 'Badges' | 'Shop'>('Overview');
+  const [purchaseMessage, setPurchaseMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  const handlePurchase = (avatar: AvatarItem) => {
+    if (!onPurchaseAvatar) return;
+    const price = avatar.price || 0;
+    const success = onPurchaseAvatar(avatar.id, price);
+    if (success) {
+      setPurchaseMessage({ text: `Purchased ${avatar.name}!`, type: 'success' });
+      setTimeout(() => setPurchaseMessage(null), 2000);
+    } else {
+      setPurchaseMessage({ text: 'Not enough coins!', type: 'error' });
+      setTimeout(() => setPurchaseMessage(null), 2000);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -64,16 +90,26 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, level, xp,
 
         {/* Navigation Tabs */}
         <div className="flex border-b border-gray-100">
-             {['Overview', 'Badges', 'Avatars'].map(tab => (
+             {['Overview', 'Badges', 'Shop'].map(tab => (
                  <button
                     key={tab}
                     onClick={() => setActiveTab(tab as any)}
-                    className={`flex-1 py-3 text-sm font-bold transition ${activeTab === tab ? 'text-pl-purple border-b-2 border-pl-purple' : 'text-gray-400'}`}
+                    className={`flex-1 py-3 text-sm font-bold transition flex items-center justify-center gap-1 ${activeTab === tab ? 'text-pl-purple border-b-2 border-pl-purple' : 'text-gray-400'}`}
                  >
+                     {tab === 'Shop' && <ShoppingBag size={14} />}
                      {tab}
                  </button>
              ))}
         </div>
+
+        {/* Purchase Message */}
+        {purchaseMessage && (
+          <div className={`mx-4 mt-2 p-2 rounded-lg text-center text-sm font-bold ${
+            purchaseMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
+            {purchaseMessage.text}
+          </div>
+        )}
 
         {/* Content */}
         <div className="p-5 overflow-y-auto flex-1 bg-gray-50">
@@ -130,43 +166,100 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, level, xp,
                 </div>
             )}
 
-            {/* Avatars Tab */}
-            {activeTab === 'Avatars' && (
-                <div className="grid grid-cols-3 gap-3">
-                    {MOCK_AVATARS.map((avatar) => {
-                        const isLocked = level < avatar.min_level;
-                        const isSelected = avatar.id === selectedAvatarId;
-                        return (
-                            <button
-                                key={avatar.id}
-                                onClick={() => !isLocked && onAvatarSelect && onAvatarSelect(avatar.id)}
-                                disabled={isLocked}
-                                className="relative flex flex-col items-center focus:outline-none"
-                            >
-                                <div className={`w-16 h-16 rounded-full p-1 border-2 relative ${
-                                    isLocked
-                                        ? 'border-gray-200 bg-gray-100 opacity-70'
-                                        : isSelected
-                                            ? 'border-pl-green ring-2 ring-pl-green ring-offset-2'
-                                            : 'border-pl-purple cursor-pointer hover:scale-105 transition'
-                                }`}>
-                                    <img src={avatar.url} alt={avatar.name} className={`w-full h-full rounded-full object-cover ${isLocked ? 'grayscale' : ''}`} />
-                                    {isLocked && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full">
-                                            <Lock size={16} className="text-white" />
+            {/* Shop Tab */}
+            {activeTab === 'Shop' && (
+                <div className="space-y-3">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center justify-between">
+                        <div>
+                            <div className="text-xs text-yellow-700">Your Balance</div>
+                            <div className="flex items-center gap-1">
+                                <Coins size={16} className="text-yellow-600" />
+                                <span className="font-bold text-yellow-700">{coins.toLocaleString()} coins</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">Avatars</div>
+                    <div className="grid grid-cols-2 gap-3">
+                        {MOCK_AVATARS.map((avatar) => {
+                            const isLevelLocked = level < avatar.min_level;
+                            const isOwned = ownedAvatars.includes(avatar.id);
+                            const isSelected = avatar.id === selectedAvatarId;
+                            const canAfford = coins >= (avatar.price || 0);
+                            const price = avatar.price || 0;
+
+                            return (
+                                <div
+                                    key={avatar.id}
+                                    className={`bg-white rounded-xl border p-3 ${
+                                        isOwned ? 'border-pl-green' : isLevelLocked ? 'border-gray-200 opacity-60' : 'border-gray-200'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-12 h-12 rounded-full p-0.5 border-2 relative ${
+                                            isSelected ? 'border-pl-green' : 'border-gray-200'
+                                        }`}>
+                                            <img
+                                                src={avatar.url}
+                                                alt={avatar.name}
+                                                className={`w-full h-full rounded-full object-cover ${isLevelLocked ? 'grayscale' : ''}`}
+                                            />
+                                            {isSelected && (
+                                                <div className="absolute -bottom-1 -right-1 bg-pl-green text-white rounded-full p-0.5">
+                                                    <Check size={10} />
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                    {isSelected && !isLocked && (
-                                        <div className="absolute -bottom-1 -right-1 bg-pl-green text-white rounded-full p-0.5">
-                                            <Check size={12} />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-bold text-sm text-gray-800 truncate">{avatar.name}</div>
+                                            {isLevelLocked ? (
+                                                <div className="flex items-center gap-1 text-xs text-red-500">
+                                                    <Lock size={10} />
+                                                    <span>Level {avatar.min_level}</span>
+                                                </div>
+                                            ) : isOwned ? (
+                                                <div className="text-xs text-pl-green font-bold">Owned</div>
+                                            ) : (
+                                                <div className="flex items-center gap-1 text-xs">
+                                                    <Coins size={10} className="text-yellow-600" />
+                                                    <span className={canAfford ? 'text-gray-600' : 'text-red-500'}>{price}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {!isLevelLocked && (
+                                        <div className="mt-2">
+                                            {isOwned ? (
+                                                <button
+                                                    onClick={() => onAvatarSelect && onAvatarSelect(avatar.id)}
+                                                    className={`w-full py-1.5 rounded-lg text-xs font-bold ${
+                                                        isSelected
+                                                            ? 'bg-pl-green/20 text-pl-green'
+                                                            : 'bg-pl-purple text-white hover:bg-pl-purple/90'
+                                                    }`}
+                                                >
+                                                    {isSelected ? 'Equipped' : 'Use'}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handlePurchase(avatar)}
+                                                    disabled={!canAfford}
+                                                    className={`w-full py-1.5 rounded-lg text-xs font-bold ${
+                                                        canAfford
+                                                            ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                                                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                    }`}
+                                                >
+                                                    {canAfford ? 'Buy' : 'Need more coins'}
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[10px] font-bold mt-1 text-center text-gray-700">{avatar.name}</span>
-                                {isLocked && <span className="text-[9px] text-red-500">Lvl {avatar.min_level}</span>}
-                            </button>
-                        )
-                    })}
+                            )
+                        })}
+                    </div>
                 </div>
             )}
 

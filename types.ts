@@ -28,6 +28,7 @@ export interface AvatarItem {
   url: string;
   min_level: number;
   is_premium: boolean;
+  price?: number; // Coin price (0 = free)
 }
 
 export interface LevelInfo {
