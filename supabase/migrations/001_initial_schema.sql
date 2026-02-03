@@ -5,9 +5,23 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ==========================================
+-- DROP EXISTING TABLES (Fresh Install)
+-- ==========================================
+DROP TABLE IF EXISTS user_avatars CASCADE;
+DROP TABLE IF EXISTS chat_messages CASCADE;
+DROP TABLE IF EXISTS daily_quest_progress CASCADE;
+DROP TABLE IF EXISTS login_streaks CASCADE;
+DROP TABLE IF EXISTS transactions CASCADE;
+DROP TABLE IF EXISTS league_members CASCADE;
+DROP TABLE IF EXISTS leagues CASCADE;
+DROP TABLE IF EXISTS squad_players CASCADE;
+DROP TABLE IF EXISTS fantasy_teams CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
+-- ==========================================
 -- 1. USERS TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     phone VARCHAR(20) UNIQUE,
     email VARCHAR(255) UNIQUE,
@@ -25,7 +39,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- ==========================================
 -- 2. FANTASY TEAMS TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS fantasy_teams (
+CREATE TABLE fantasy_teams (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     season_id VARCHAR(20) DEFAULT '2024-25',
@@ -44,7 +58,7 @@ CREATE TABLE IF NOT EXISTS fantasy_teams (
 -- ==========================================
 -- 3. SQUAD PLAYERS TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS squad_players (
+CREATE TABLE squad_players (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     team_id UUID NOT NULL REFERENCES fantasy_teams(id) ON DELETE CASCADE,
     player_id INTEGER NOT NULL,
@@ -60,7 +74,7 @@ CREATE TABLE IF NOT EXISTS squad_players (
 -- ==========================================
 -- 4. LEAGUES TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS leagues (
+CREATE TABLE leagues (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('public', 'private', 'h2h', 'prize', 'city', 'company', 'university')),
@@ -80,7 +94,7 @@ CREATE TABLE IF NOT EXISTS leagues (
 -- ==========================================
 -- 5. LEAGUE MEMBERS TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS league_members (
+CREATE TABLE league_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     league_id UUID NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -98,7 +112,7 @@ CREATE TABLE IF NOT EXISTS league_members (
 -- ==========================================
 -- 6. TRANSACTIONS TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS transactions (
+CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     type VARCHAR(20) NOT NULL CHECK (type IN ('deposit', 'withdraw', 'entry_fee', 'prize', 'refund', 'coin_purchase', 'coin_spend')),
@@ -113,7 +127,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- ==========================================
 -- 7. LOGIN STREAKS TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS login_streaks (
+CREATE TABLE login_streaks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
     current_streak INTEGER DEFAULT 1,
@@ -125,7 +139,7 @@ CREATE TABLE IF NOT EXISTS login_streaks (
 -- ==========================================
 -- 8. DAILY QUEST PROGRESS TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS daily_quest_progress (
+CREATE TABLE daily_quest_progress (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     quest_id VARCHAR(20) NOT NULL,
@@ -138,7 +152,7 @@ CREATE TABLE IF NOT EXISTS daily_quest_progress (
 -- ==========================================
 -- 9. CHAT MESSAGES TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS chat_messages (
+CREATE TABLE chat_messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     league_id UUID NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -149,7 +163,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 -- ==========================================
 -- 10. USER AVATARS TABLE
 -- ==========================================
-CREATE TABLE IF NOT EXISTS user_avatars (
+CREATE TABLE user_avatars (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     avatar_id VARCHAR(20) NOT NULL,
@@ -161,14 +175,14 @@ CREATE TABLE IF NOT EXISTS user_avatars (
 -- ==========================================
 -- INDEXES FOR PERFORMANCE
 -- ==========================================
-CREATE INDEX IF NOT EXISTS idx_fantasy_teams_user ON fantasy_teams(user_id);
-CREATE INDEX IF NOT EXISTS idx_squad_players_team ON squad_players(team_id);
-CREATE INDEX IF NOT EXISTS idx_league_members_league ON league_members(league_id);
-CREATE INDEX IF NOT EXISTS idx_league_members_user ON league_members(user_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id);
-CREATE INDEX IF NOT EXISTS idx_chat_messages_league ON chat_messages(league_id);
-CREATE INDEX IF NOT EXISTS idx_chat_messages_created ON chat_messages(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_daily_quest_user_date ON daily_quest_progress(user_id, date);
+CREATE INDEX idx_fantasy_teams_user ON fantasy_teams(user_id);
+CREATE INDEX idx_squad_players_team ON squad_players(team_id);
+CREATE INDEX idx_league_members_league ON league_members(league_id);
+CREATE INDEX idx_league_members_user ON league_members(user_id);
+CREATE INDEX idx_transactions_user ON transactions(user_id);
+CREATE INDEX idx_chat_messages_league ON chat_messages(league_id);
+CREATE INDEX idx_chat_messages_created ON chat_messages(created_at DESC);
+CREATE INDEX idx_daily_quest_user_date ON daily_quest_progress(user_id, date);
 
 -- ==========================================
 -- ROW LEVEL SECURITY (RLS)
