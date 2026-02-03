@@ -164,6 +164,54 @@ const validateFormation = (players: Player[]): boolean => {
     return gks === 1 && defs >= 3 && mids >= 2 && fwds >= 1 && starters.length === 11;
 };
 
+// Helper: Build initial valid squad from players array
+const buildInitialSquad = (allPlayers: Player[]): Player[] => {
+    const gks = allPlayers.filter(p => p.position === Position.GK);
+    const defs = allPlayers.filter(p => p.position === Position.DEF);
+    const mids = allPlayers.filter(p => p.position === Position.MID);
+    const fwds = allPlayers.filter(p => p.position === Position.FWD);
+
+    // Sort by total_points descending to get best players
+    const sortByPoints = (a: Player, b: Player) => b.total_points - a.total_points;
+    gks.sort(sortByPoints);
+    defs.sort(sortByPoints);
+    mids.sort(sortByPoints);
+    fwds.sort(sortByPoints);
+
+    // Build squad: 2 GK, 5 DEF, 5 MID, 3 FWD = 15 players
+    // Starting 11: 1 GK, 4 DEF, 4 MID, 2 FWD
+    // Bench 4: 1 GK, 1 DEF, 1 MID, 1 FWD
+    const squad: Player[] = [];
+
+    // Starting GK
+    if (gks[0]) squad.push({ ...gks[0], is_bench: false, is_captain: false, is_vice_captain: false });
+    // Starting DEFs (4)
+    for (let i = 0; i < 4 && i < defs.length; i++) {
+        squad.push({ ...defs[i], is_bench: false, is_captain: false, is_vice_captain: false });
+    }
+    // Starting MIDs (4)
+    for (let i = 0; i < 4 && i < mids.length; i++) {
+        const isCaptain = i === 0; // Best midfielder as vice captain
+        squad.push({ ...mids[i], is_bench: false, is_captain: false, is_vice_captain: isCaptain });
+    }
+    // Starting FWDs (2)
+    for (let i = 0; i < 2 && i < fwds.length; i++) {
+        const isCaptain = i === 0; // Best forward as captain
+        squad.push({ ...fwds[i], is_bench: false, is_captain: isCaptain, is_vice_captain: false });
+    }
+
+    // Bench GK
+    if (gks[1]) squad.push({ ...gks[1], is_bench: true, is_captain: false, is_vice_captain: false });
+    // Bench DEF
+    if (defs[4]) squad.push({ ...defs[4], is_bench: true, is_captain: false, is_vice_captain: false });
+    // Bench MID
+    if (mids[4]) squad.push({ ...mids[4], is_bench: true, is_captain: false, is_vice_captain: false });
+    // Bench FWD
+    if (fwds[2]) squad.push({ ...fwds[2], is_bench: true, is_captain: false, is_vice_captain: false });
+
+    return squad;
+};
+
 // --- Main App Component ---
 
 const App: React.FC = () => {
@@ -176,9 +224,9 @@ const App: React.FC = () => {
   const [balance, setBalance] = useState(150); // ETB Mock Balance
   const [coins, setCoins] = useState(0); // Virtual currency (non-monetary)
   
-  // Data State
-  const [squad, setSquad] = useState<Player[]>(MOCK_PLAYERS);
-  const [originalSquad, setOriginalSquad] = useState<Player[]>(MOCK_PLAYERS); // Snapshot for diffing
+  // Data State - Build valid 15-player squad from mock data
+  const [squad, setSquad] = useState<Player[]>(() => buildInitialSquad(MOCK_PLAYERS));
+  const [originalSquad, setOriginalSquad] = useState<Player[]>(() => buildInitialSquad(MOCK_PLAYERS)); // Snapshot for diffing
   const [leagues, setLeagues] = useState<League[]>(MOCK_LEAGUES);
   
   // Chip State
