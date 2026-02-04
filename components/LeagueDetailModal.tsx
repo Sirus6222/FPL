@@ -7,12 +7,15 @@ interface LeagueDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   league: League | null;
+  onStake?: (amount: number, multiplier: number) => void;
+  userBalance?: number;
 }
 
-const LeagueDetailModal: React.FC<LeagueDetailModalProps> = ({ isOpen, onClose, league }) => {
+const LeagueDetailModal: React.FC<LeagueDetailModalProps> = ({ isOpen, onClose, league, onStake, userBalance = 150 }) => {
   const [activeTab, setActiveTab] = useState<'Standings' | 'Matchups' | 'Pot' | 'Chat'>('Standings');
   const [multiplier, setMultiplier] = useState(1.5);
   const [stakeAmount, setStakeAmount] = useState(50);
+  const [hasStaked, setHasStaked] = useState(false);
   
   // Chat State
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(MOCK_CHAT_MESSAGES);
@@ -35,7 +38,10 @@ const LeagueDetailModal: React.FC<LeagueDetailModalProps> = ({ isOpen, onClose, 
   const pot = MOCK_POT_INFO;
 
   const handleStake = () => {
-      alert(`Staked ${stakeAmount} ${CURRENCY_SYMBOL} for a chance to win ${Math.floor(stakeAmount * multiplier)} ${CURRENCY_SYMBOL} next week!`);
+      if (onStake && stakeAmount <= pot.my_winnings_balance) {
+          onStake(stakeAmount, multiplier);
+          setHasStaked(true);
+      }
   };
 
   const handleSendChat = () => {
@@ -254,12 +260,18 @@ const LeagueDetailModal: React.FC<LeagueDetailModalProps> = ({ isOpen, onClose, 
                             </div>
                         </div>
 
-                        <button 
+                        <button
                             onClick={handleStake}
-                            disabled={pot.my_winnings_balance < stakeAmount}
-                            className="w-full bg-black text-white font-bold py-3 rounded-xl shadow-lg hover:bg-gray-800 transition flex items-center justify-center gap-2 relative z-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={pot.my_winnings_balance < stakeAmount || hasStaked}
+                            className={`w-full font-bold py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2 relative z-10 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                hasStaked ? 'bg-pl-green text-black' : 'bg-black text-white hover:bg-gray-800'
+                            }`}
                         >
-                            <Wallet size={16} /> Stake {stakeAmount} {CURRENCY_SYMBOL}
+                            {hasStaked ? (
+                                <>✓ Staked for GW38</>
+                            ) : (
+                                <><Wallet size={16} /> Stake {stakeAmount} {CURRENCY_SYMBOL}</>
+                            )}
                         </button>
 
                         <Target className="absolute -bottom-6 -right-6 text-gray-50 w-32 h-32" />

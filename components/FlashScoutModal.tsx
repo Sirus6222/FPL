@@ -4,7 +4,7 @@ import { X, Zap, TrendingDown, ArrowRight } from 'lucide-react';
 interface FlashScoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAction: () => void;
+  onAction: (playerId: number) => void;
 }
 
 const FlashScoutModal: React.FC<FlashScoutModalProps> = ({ isOpen, onClose, onAction }) => {
@@ -44,8 +44,8 @@ const FlashScoutModal: React.FC<FlashScoutModalProps> = ({ isOpen, onClose, onAc
                 </div>
             </div>
 
-            <button 
-                onClick={() => { onAction(); onClose(); }}
+            <button
+                onClick={() => onAction(4)} // Watkins player ID
                 className="w-full bg-pl-green text-black font-bold py-3 rounded-xl hover:bg-white transition flex items-center justify-center gap-2"
             >
                 Scout Player <ArrowRight size={16} />

@@ -6,12 +6,22 @@ interface DailyHubProps {
   streak: number;
   quests: DailyQuest[];
   onOpenTrivia: () => void;
+  onQuestAction?: (questId: string) => void;
 }
 
-const DailyHub: React.FC<DailyHubProps> = ({ streak, quests, onOpenTrivia }) => {
+const DailyHub: React.FC<DailyHubProps> = ({ streak, quests, onOpenTrivia, onQuestAction }) => {
   const completedCount = quests.filter(q => q.is_completed).length;
   const totalCount = quests.length;
   const progress = (completedCount / totalCount) * 100;
+
+  // Calculate next bonus milestone
+  const getNextBonus = () => {
+    if (streak < 7) return { days: 7 - streak, bonus: 50 };
+    if (streak < 14) return { days: 14 - streak, bonus: 100 };
+    if (streak < 30) return { days: 30 - streak, bonus: 200 };
+    return { days: 0, bonus: 0 };
+  };
+  const nextBonus = getNextBonus();
 
   return (
     <div className="space-y-4">
@@ -23,8 +33,10 @@ const DailyHub: React.FC<DailyHubProps> = ({ streak, quests, onOpenTrivia }) => 
                          <Flame size={16} className="text-yellow-300 fill-yellow-300 animate-pulse" />
                          <span className="text-xs font-bold uppercase opacity-90">Login Streak</span>
                      </div>
-                     <div className="text-2xl font-bold">{streak} Days</div>
-                     <div className="text-[10px] opacity-80 mt-1">Next Bonus: 2 Days</div>
+                     <div className="text-2xl font-bold">{streak} {streak === 1 ? 'Day' : 'Days'}</div>
+                     <div className="text-[10px] opacity-80 mt-1">
+                       {nextBonus.days > 0 ? `+${nextBonus.bonus} coins in ${nextBonus.days} days` : 'Max streak reached!'}
+                     </div>
                  </div>
                  <Flame size={64} className="absolute -bottom-4 -right-4 text-white/10" />
              </div>
@@ -76,9 +88,12 @@ const DailyHub: React.FC<DailyHubProps> = ({ streak, quests, onOpenTrivia }) => 
                                 </div>
                             </div>
                         </div>
-                        {!quest.is_completed && (
-                            <button className="text-[10px] font-bold text-pl-purple bg-pl-purple/5 px-2 py-1 rounded hover:bg-pl-purple/10">
-                                Go
+                        {!quest.is_completed && onQuestAction && (
+                            <button
+                                onClick={() => onQuestAction(quest.id)}
+                                className="text-[10px] font-bold text-pl-purple bg-pl-purple/5 px-2 py-1 rounded hover:bg-pl-purple/10 transition"
+                            >
+                                Claim
                             </button>
                         )}
                     </div>
