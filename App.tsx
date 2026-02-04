@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Users, Shirt, Wallet, Trophy, Bell, Menu, Plus, ArrowLeftRight, Settings, Send, Globe, BarChart2, TrendingUp, TrendingDown, Shield, RefreshCw, MessageCircle, Star, Zap, Lock, CheckCircle, AlertTriangle, AlertOctagon, PlayCircle, MapPin, Building2, GraduationCap, Coins } from 'lucide-react';
-import { MOCK_PLAYERS, MOCK_LEAGUES, MOCK_TRANSACTIONS, CURRENCY_SYMBOL, TRANSLATIONS, MOCK_DAILY_QUESTS, MOCK_TRIVIA, MOCK_GAMEWEEKS, LEVELS_CONFIG, getTeamFixtures, TEAMS } from './constants';
-import { Player, Position, GameweekStatus, League, Notification, ChipType, DailyQuest } from './types';
+import { Users, Shirt, Wallet, Trophy, Bell, Menu, Plus, ArrowLeftRight, Settings, Send, Globe, BarChart2, TrendingUp, TrendingDown, Shield, RefreshCw, MessageCircle, Star, Zap, Lock, CheckCircle, AlertTriangle, AlertOctagon, PlayCircle, MapPin, Building2, GraduationCap, Coins, Gamepad2, Store, Coffee } from 'lucide-react';
+import { MOCK_PLAYERS, MOCK_LEAGUES, MOCK_TRANSACTIONS, CURRENCY_SYMBOL, TRANSLATIONS, MOCK_DAILY_QUESTS, MOCK_TRIVIA, MOCK_GAMEWEEKS, LEVELS_CONFIG, getTeamFixtures, TEAMS, MOCK_SHOWROOMS, MOCK_CONTESTS, COIN_BUNDLES, MINI_GAMES, COFFEE_HOUR_CONFIG, XP_ACTIONS } from './constants';
+import { Player, Position, GameweekStatus, League, Notification, ChipType, DailyQuest, Contest, MiniGameConfig, CoinBundle } from './types';
 import Pitch from './components/Pitch';
 import WalletModal from './components/WalletModal';
 import TransferMarket from './components/TransferMarket';
@@ -22,6 +22,13 @@ import FlashScoutModal from './components/FlashScoutModal';
 import LeagueDetailModal from './components/LeagueDetailModal';
 import ChipBar from './components/ChipBar';
 import OnboardingCoach, { TutorialStep } from './components/OnboardingCoach';
+import ShowroomHub from './components/ShowroomHub';
+import ContestHub from './components/ContestHub';
+import CoinShop from './components/CoinShop';
+import MiniGamesHub from './components/MiniGamesHub';
+import CoffeeHourBanner from './components/CoffeeHourBanner';
+import PenaltyShootout from './components/PenaltyShootout';
+import PricePredictor from './components/PricePredictor';
 import { calculateScore, generateRandomStats, MatchStats } from './scoring';
 
 // --- Sub-Components ---
@@ -267,6 +274,16 @@ const App: React.FC = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isFlashScoutOpen, setIsFlashScoutOpen] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+  // New Feature States
+  const [isShowroomHubOpen, setIsShowroomHubOpen] = useState(false);
+  const [isContestHubOpen, setIsContestHubOpen] = useState(false);
+  const [isCoinShopOpen, setIsCoinShopOpen] = useState(false);
+  const [isMiniGamesOpen, setIsMiniGamesOpen] = useState(false);
+  const [activeMiniGame, setActiveMiniGame] = useState<MiniGameConfig | null>(null);
+  const [checkedInShowrooms, setCheckedInShowrooms] = useState<string[]>([]);
+  const [miniGamePlays, setMiniGamePlays] = useState<{[gameId: string]: number}>({});
+  const [coffeeHourClaimed, setCoffeeHourClaimed] = useState(false);
 
   const [language, setLanguage] = useState<'en' | 'am'>('en');
   
@@ -1007,6 +1024,128 @@ const App: React.FC = () => {
       showToast(`Staked ${amount} ETB! Win ${potentialWin} ETB if you top GW38!`, 'success');
   }, []);
 
+  // Handle Showroom Check-in
+  const handleShowroomCheckIn = useCallback((showroomId: string) => {
+      if (checkedInShowrooms.includes(showroomId)) {
+          showToast('Already checked in today!', 'error');
+          return;
+      }
+      setCheckedInShowrooms(prev => [...prev, showroomId]);
+      // Award XP for check-in
+      const xpAction = XP_ACTIONS.find(a => a.action === 'showroom_checkin');
+      if (xpAction) {
+          setUserXP(prev => prev + xpAction.xp);
+      }
+      setCoins(prev => {
+          const newCoins = prev + 25;
+          localStorage.setItem('fpl_eth_coins', newCoins.toString());
+          return newCoins;
+      });
+      showToast('Checked in! +25 XP, +25 coins', 'success');
+  }, [checkedInShowrooms]);
+
+  // Handle Contest Entry
+  const handleContestEntry = useCallback((contest: Contest) => {
+      if (coins < contest.entry_fee_coins) {
+          showToast('Not enough coins!', 'error');
+          return;
+      }
+      if (contest.min_level && userLevel < contest.min_level) {
+          showToast(`Requires level ${contest.min_level}`, 'error');
+          return;
+      }
+      setCoins(prev => {
+          const newCoins = prev - contest.entry_fee_coins;
+          localStorage.setItem('fpl_eth_coins', newCoins.toString());
+          return newCoins;
+      });
+      // Award XP for entering
+      const xpAction = XP_ACTIONS.find(a => a.action === 'contest_entry');
+      if (xpAction) {
+          setUserXP(prev => prev + xpAction.xp);
+      }
+      showToast(`Entered ${contest.name}! Good luck!`, 'success');
+  }, [coins, userLevel]);
+
+  // Handle Coin Bundle Purchase
+  const handleBundlePurchase = useCallback((bundle: CoinBundle) => {
+      // In a real app, this would integrate with Telebirr/CBE
+      const totalCoins = bundle.coins + bundle.bonus_coins;
+      setCoins(prev => {
+          const newCoins = prev + totalCoins;
+          localStorage.setItem('fpl_eth_coins', newCoins.toString());
+          return newCoins;
+      });
+      // First purchase XP bonus
+      const xpAction = XP_ACTIONS.find(a => a.action === 'first_purchase');
+      if (xpAction) {
+          setUserXP(prev => prev + xpAction.xp);
+      }
+      showToast(`+${totalCoins} coins added!`, 'success');
+      setIsCoinShopOpen(false);
+  }, []);
+
+  // Handle Mini-game Play
+  const handlePlayMiniGame = useCallback((game: MiniGameConfig) => {
+      const played = miniGamePlays[game.id] || 0;
+      if (played >= game.daily_limit) {
+          showToast('Daily limit reached! Try again tomorrow.', 'error');
+          return;
+      }
+      if (coins < game.cost_coins) {
+          showToast('Not enough coins!', 'error');
+          return;
+      }
+      // Deduct cost
+      if (game.cost_coins > 0) {
+          setCoins(prev => {
+              const newCoins = prev - game.cost_coins;
+              localStorage.setItem('fpl_eth_coins', newCoins.toString());
+              return newCoins;
+          });
+      }
+      // Track play
+      setMiniGamePlays(prev => ({
+          ...prev,
+          [game.id]: (prev[game.id] || 0) + 1
+      }));
+      // Open the game
+      setActiveMiniGame(game);
+      setIsMiniGamesOpen(false);
+  }, [coins, miniGamePlays]);
+
+  // Handle Mini-game Completion
+  const handleMiniGameComplete = useCallback((goals: number, rewardCoins: number, xp: number) => {
+      setCoins(prev => {
+          const newCoins = prev + rewardCoins;
+          localStorage.setItem('fpl_eth_coins', newCoins.toString());
+          return newCoins;
+      });
+      setUserXP(prev => prev + xp);
+      setActiveMiniGame(null);
+      if (rewardCoins > 0) {
+          showToast(`Earned ${rewardCoins} coins & ${xp} XP!`, 'success');
+      } else {
+          showToast(`+${xp} XP earned!`, 'success');
+      }
+  }, []);
+
+  // Handle Coffee Hour Claim
+  const handleCoffeeHourClaim = useCallback(() => {
+      if (coffeeHourClaimed) return;
+      setCoffeeHourClaimed(true);
+      // Random reward from coffee hour
+      const coinReward = Math.floor(Math.random() * 20) + 10;
+      const xpReward = Math.floor(Math.random() * 25) + 15;
+      setCoins(prev => {
+          const newCoins = prev + coinReward;
+          localStorage.setItem('fpl_eth_coins', newCoins.toString());
+          return newCoins;
+      });
+      setUserXP(prev => prev + xpReward);
+      showToast(`Coffee Hour: +${coinReward} coins, +${xpReward} XP!`, 'success');
+  }, [coffeeHourClaimed]);
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20 max-w-md mx-auto relative border-x border-gray-200 shadow-2xl overflow-hidden">
       
@@ -1113,7 +1252,14 @@ const App: React.FC = () => {
         {/* HOME TAB */}
         {activeTab === 'home' && (
           <div className="animate-in fade-in duration-300 space-y-6">
-            
+
+            {/* Coffee Hour Banner */}
+            <CoffeeHourBanner
+              config={COFFEE_HOUR_CONFIG}
+              onClaim={handleCoffeeHourClaim}
+              hasClaimed={coffeeHourClaimed}
+            />
+
             {/* Daily Hub (New Feature) */}
             <DailyHub
               streak={loginStreak}
@@ -1121,6 +1267,46 @@ const App: React.FC = () => {
               onOpenTrivia={() => setShowTrivia(true)}
               onQuestAction={handleQuestComplete}
             />
+
+            {/* Quick Access Grid - New Features */}
+            <div className="grid grid-cols-4 gap-2">
+              <button
+                onClick={() => setIsShowroomHubOpen(true)}
+                className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-purple-300 transition"
+              >
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <MapPin size={18} className="text-purple-600" />
+                </div>
+                <span className="text-[10px] font-medium text-gray-700">Showrooms</span>
+              </button>
+              <button
+                onClick={() => setIsContestHubOpen(true)}
+                className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-yellow-300 transition"
+              >
+                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <Trophy size={18} className="text-yellow-600" />
+                </div>
+                <span className="text-[10px] font-medium text-gray-700">Contests</span>
+              </button>
+              <button
+                onClick={() => setIsMiniGamesOpen(true)}
+                className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-pink-300 transition"
+              >
+                <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                  <Gamepad2 size={18} className="text-pink-600" />
+                </div>
+                <span className="text-[10px] font-medium text-gray-700">Mini-Games</span>
+              </button>
+              <button
+                onClick={() => setIsCoinShopOpen(true)}
+                className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-amber-300 transition"
+              >
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                  <Coins size={18} className="text-amber-600" />
+                </div>
+                <span className="text-[10px] font-medium text-gray-700">Shop</span>
+              </button>
+            </div>
 
             {/* Gameweek Deadline Card */}
             <div className={`rounded-2xl p-5 text-white shadow-lg relative overflow-hidden transition-all duration-500 ${gameweekStatus === GameweekStatus.ACTIVE ? 'bg-gradient-to-r from-pl-purple to-indigo-900' : 'bg-red-800'}`}>
@@ -1543,6 +1729,66 @@ const App: React.FC = () => {
         onClose={() => setIsFlashScoutOpen(false)}
         onAction={handleFlashScoutAction}
       />
+
+      {/* New Feature Modals */}
+      {isShowroomHubOpen && (
+        <ShowroomHub
+          showrooms={MOCK_SHOWROOMS}
+          userCheckedInShowrooms={checkedInShowrooms}
+          onClose={() => setIsShowroomHubOpen(false)}
+          onCheckIn={handleShowroomCheckIn}
+        />
+      )}
+
+      {isContestHubOpen && (
+        <ContestHub
+          contests={MOCK_CONTESTS}
+          userLevel={userLevel}
+          userCoins={coins}
+          onClose={() => setIsContestHubOpen(false)}
+          onEnterContest={handleContestEntry}
+        />
+      )}
+
+      {isCoinShopOpen && (
+        <CoinShop
+          bundles={COIN_BUNDLES}
+          userCoins={coins}
+          onClose={() => setIsCoinShopOpen(false)}
+          onPurchase={handleBundlePurchase}
+        />
+      )}
+
+      {isMiniGamesOpen && (
+        <MiniGamesHub
+          games={MINI_GAMES}
+          userLevel={userLevel}
+          userCoins={coins}
+          dailyPlays={miniGamePlays}
+          onClose={() => setIsMiniGamesOpen(false)}
+          onPlayGame={handlePlayMiniGame}
+        />
+      )}
+
+      {/* Mini-Game Active Views */}
+      {activeMiniGame?.id === 'penalty_shootout' && (
+        <PenaltyShootout
+          maxReward={activeMiniGame.max_reward_coins}
+          xpReward={activeMiniGame.xp_reward}
+          onComplete={handleMiniGameComplete}
+          onClose={() => setActiveMiniGame(null)}
+        />
+      )}
+
+      {activeMiniGame?.id === 'price_predictor' && (
+        <PricePredictor
+          players={MOCK_PLAYERS}
+          maxReward={activeMiniGame.max_reward_coins}
+          xpReward={activeMiniGame.xp_reward}
+          onComplete={handleMiniGameComplete}
+          onClose={() => setActiveMiniGame(null)}
+        />
+      )}
 
     </div>
   );

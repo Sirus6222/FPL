@@ -1,5 +1,5 @@
 
-import { Player, Position, League, Transaction, TeamFixtures, TeamStats, RankHistory, PremierLeagueTeam, DailyQuest, TriviaQuestion, ChatMessage, Gameweek, LevelInfo, Badge, AvatarItem, LeagueMember, LeagueMatchup, PotInfo } from './types';
+import { Player, Position, League, Transaction, TeamFixtures, TeamStats, RankHistory, PremierLeagueTeam, DailyQuest, TriviaQuestion, ChatMessage, Gameweek, LevelInfo, Badge, AvatarItem, LeagueMember, LeagueMatchup, PotInfo, Showroom, Contest, CoinBundle, MiniGameConfig, Survey, XPAction, CoffeeHourConfig } from './types';
 
 export const APP_NAME = "Ethiopian FPL";
 export const CURRENCY_SYMBOL = "ETB";
@@ -1359,3 +1359,562 @@ export const MOCK_GAMEWEEKS: Gameweek[] = [
   { gameweek_id: 'gw35', gameweek_number: 35, deadline_time: '2024-04-27', is_current: false, is_finished: true, highest_score: 98, average_score: 55, most_selected_player_id: 9, most_captained_player_id: 2 },
   { gameweek_id: 'gw34', gameweek_number: 34, deadline_time: '2024-04-20', is_current: false, is_finished: true, highest_score: 142, average_score: 78, most_selected_player_id: 3, most_captained_player_id: 3 },
 ];
+
+// ============ SHOWROOM VENUES ============
+export const MOCK_SHOWROOMS: Showroom[] = [
+  {
+    showroom_id: 'sr_001',
+    name: 'Tomoca Coffee - Bole',
+    slug: 'tomoca-bole',
+    venue_type: 'coffee_shop',
+    tier: 'gold',
+    location: {
+      city: 'Addis Ababa',
+      sub_city: 'Bole',
+      address: 'Bole Road, Near Edna Mall',
+      coordinates: { lat: 8.9806, lng: 38.7578 }
+    },
+    qr_code: 'SR_TOMOCA_BOLE_001',
+    verification: {
+      method: 'qr_scan',
+      gps_required: true,
+      gps_radius_meters: 100,
+      check_in_cooldown_hours: 1
+    },
+    branding: {
+      logo_url: 'https://picsum.photos/100/100?random=sr1',
+      primary_color: '#4A2C2A',
+      secondary_color: '#D4A574',
+      sponsor_name: 'Telebirr'
+    },
+    stats: {
+      total_members: 342,
+      active_this_week: 89,
+      all_time_points: 45200,
+      rank_in_city: 3
+    },
+    operating_hours: { open: '07:00', close: '22:00' },
+    created_at: '2024-01-15'
+  },
+  {
+    showroom_id: 'sr_002',
+    name: 'Kaldi\'s Coffee - Kazanchis',
+    slug: 'kaldis-kazanchis',
+    venue_type: 'coffee_shop',
+    tier: 'silver',
+    location: {
+      city: 'Addis Ababa',
+      sub_city: 'Kirkos',
+      address: 'Kazanchis, Near Hilton',
+      coordinates: { lat: 9.0147, lng: 38.7632 }
+    },
+    qr_code: 'SR_KALDIS_KAZ_002',
+    verification: {
+      method: 'qr_scan',
+      gps_required: true,
+      gps_radius_meters: 75,
+      check_in_cooldown_hours: 1
+    },
+    branding: {
+      logo_url: 'https://picsum.photos/100/100?random=sr2',
+      primary_color: '#2D5016',
+      secondary_color: '#8BC34A'
+    },
+    stats: {
+      total_members: 215,
+      active_this_week: 52,
+      all_time_points: 28700,
+      rank_in_city: 8
+    },
+    operating_hours: { open: '06:30', close: '21:00' },
+    created_at: '2024-02-10'
+  },
+  {
+    showroom_id: 'sr_003',
+    name: 'Walia Sports Bar - Piassa',
+    slug: 'walia-piassa',
+    venue_type: 'sports_bar',
+    tier: 'platinum',
+    location: {
+      city: 'Addis Ababa',
+      sub_city: 'Arada',
+      address: 'Piassa, Churchill Avenue',
+      coordinates: { lat: 9.0358, lng: 38.7531 }
+    },
+    qr_code: 'SR_WALIA_PIASSA_003',
+    verification: {
+      method: 'qr_scan',
+      gps_required: true,
+      gps_radius_meters: 50,
+      check_in_cooldown_hours: 2
+    },
+    branding: {
+      logo_url: 'https://picsum.photos/100/100?random=sr3',
+      primary_color: '#006400',
+      secondary_color: '#FFD700',
+      sponsor_name: 'Heineken'
+    },
+    stats: {
+      total_members: 567,
+      active_this_week: 178,
+      all_time_points: 89400,
+      rank_in_city: 1
+    },
+    operating_hours: { open: '15:00', close: '02:00' },
+    created_at: '2023-11-01'
+  },
+  {
+    showroom_id: 'sr_004',
+    name: 'AAU Engineering Campus',
+    slug: 'aau-engineering',
+    venue_type: 'university',
+    tier: 'gold',
+    location: {
+      city: 'Addis Ababa',
+      sub_city: 'Yeka',
+      address: 'AAU 5 Kilo Campus',
+      coordinates: { lat: 9.0380, lng: 38.7630 }
+    },
+    qr_code: 'SR_AAU_ENG_004',
+    verification: {
+      method: 'wifi_check',
+      gps_required: false,
+      wifi_ssid: 'AAU-Student',
+      check_in_cooldown_hours: 4
+    },
+    branding: {
+      logo_url: 'https://picsum.photos/100/100?random=sr4',
+      primary_color: '#1A237E',
+      secondary_color: '#FFFFFF'
+    },
+    stats: {
+      total_members: 1250,
+      active_this_week: 320,
+      all_time_points: 156000,
+      rank_in_city: 2
+    },
+    created_at: '2023-09-15'
+  },
+  {
+    showroom_id: 'sr_005',
+    name: 'Ethio Telecom HQ Lounge',
+    slug: 'ethio-telecom-hq',
+    venue_type: 'corporate',
+    tier: 'platinum',
+    location: {
+      city: 'Addis Ababa',
+      sub_city: 'Kirkos',
+      address: 'Churchill Road, Ethio Telecom Tower',
+      coordinates: { lat: 9.0120, lng: 38.7580 }
+    },
+    qr_code: 'SR_ET_HQ_005',
+    verification: {
+      method: 'qr_scan',
+      gps_required: true,
+      gps_radius_meters: 200,
+      check_in_cooldown_hours: 8
+    },
+    branding: {
+      logo_url: 'https://picsum.photos/100/100?random=sr5',
+      primary_color: '#FF6600',
+      secondary_color: '#003366',
+      sponsor_name: 'Ethio Telecom'
+    },
+    stats: {
+      total_members: 890,
+      active_this_week: 245,
+      all_time_points: 112000,
+      rank_in_city: 4
+    },
+    operating_hours: { open: '08:00', close: '18:00' },
+    created_at: '2024-01-01'
+  }
+];
+
+// ============ CONTESTS ============
+export const MOCK_CONTESTS: Contest[] = [
+  {
+    contest_id: 'ct_001',
+    name: 'Daily Free Contest',
+    type: 'free',
+    entry_fee_coins: 0,
+    prize_structure: [
+      { position: 1, prize_coins: 100, prize_label: '1st Place' },
+      { position: 2, prize_coins: 50, prize_label: '2nd Place' },
+      { position: 3, prize_coins: 25, prize_label: '3rd Place' }
+    ],
+    max_entries: 0,
+    current_entries: 12450,
+    start_time: getFutureDate(0),
+    end_time: getFutureDate(1),
+    status: 'active',
+    contest_rules: ['One entry per user', 'Points based on GW performance', 'Ties split prizes'],
+    is_guaranteed: true
+  },
+  {
+    contest_id: 'ct_002',
+    name: 'Micro Stakes Challenge',
+    type: 'micro',
+    entry_fee_coins: 10,
+    prize_structure: [
+      { position: 1, prize_coins: 50, prize_label: 'Champion' },
+      { position: 2, prize_coins: 30, prize_label: 'Runner-up' },
+      { position: 3, prize_coins: 15, prize_label: '3rd Place' }
+    ],
+    max_entries: 100,
+    current_entries: 67,
+    start_time: getFutureDate(0),
+    end_time: getFutureDate(1),
+    status: 'active',
+    contest_rules: ['Max 1 entry per user', 'Top 3 win prizes'],
+    is_guaranteed: true
+  },
+  {
+    contest_id: 'ct_003',
+    name: 'Telebirr Weekly Cup',
+    type: 'standard',
+    entry_fee_coins: 50,
+    sponsor: { name: 'Telebirr', logo_url: 'https://picsum.photos/50/50?random=telebir' },
+    prize_structure: [
+      { position: 1, prize_coins: 500, prize_label: 'Champion', prize_etb: 200 },
+      { position: 2, prize_coins: 250, prize_label: 'Runner-up', prize_etb: 100 },
+      { position: 3, prize_coins: 100, prize_label: '3rd Place', prize_etb: 50 }
+    ],
+    max_entries: 500,
+    current_entries: 342,
+    start_time: getFutureDate(-2),
+    end_time: getFutureDate(5),
+    status: 'active',
+    contest_rules: ['Sponsored by Telebirr', 'Top 3 win coins + ETB prizes', 'Prize guaranteed'],
+    is_guaranteed: true
+  },
+  {
+    contest_id: 'ct_004',
+    name: 'Premium Showroom Battle',
+    type: 'premium',
+    entry_fee_coins: 100,
+    showroom_id: 'sr_003',
+    prize_structure: [
+      { position: 1, prize_coins: 1000, prize_label: 'Showroom Champion' },
+      { position: 2, prize_coins: 500, prize_label: 'Runner-up' },
+      { position: 3, prize_coins: 250, prize_label: '3rd Place' },
+      { position: 10, prize_coins: 50, prize_label: 'Top 10' }
+    ],
+    max_entries: 50,
+    current_entries: 38,
+    start_time: getFutureDate(0),
+    end_time: getFutureDate(1),
+    status: 'active',
+    min_level: 5,
+    contest_rules: ['Showroom members only', 'Must check in to enter', 'Level 5+ required'],
+    is_guaranteed: true
+  },
+  {
+    contest_id: 'ct_005',
+    name: 'Elite Masters League',
+    type: 'elite',
+    entry_fee_coins: 250,
+    prize_structure: [
+      { position: 1, prize_coins: 2500, prize_label: 'Elite Champion', prize_etb: 1000 },
+      { position: 2, prize_coins: 1500, prize_label: 'Elite Runner-up', prize_etb: 500 },
+      { position: 3, prize_coins: 750, prize_label: 'Elite 3rd', prize_etb: 250 }
+    ],
+    max_entries: 100,
+    current_entries: 45,
+    start_time: getFutureDate(-1),
+    end_time: getFutureDate(6),
+    status: 'active',
+    min_level: 10,
+    contest_rules: ['Level 10+ only', 'Weekly format', 'Big prizes guaranteed'],
+    is_guaranteed: true
+  },
+  {
+    contest_id: 'ct_006',
+    name: 'Grand Championship',
+    type: 'grand',
+    entry_fee_coins: 500,
+    sponsor: { name: 'Coca-Cola', logo_url: 'https://picsum.photos/50/50?random=coke' },
+    prize_structure: [
+      { position: 1, prize_coins: 10000, prize_label: 'Grand Champion', prize_etb: 5000 },
+      { position: 2, prize_coins: 5000, prize_label: 'Grand Runner-up', prize_etb: 2500 },
+      { position: 3, prize_coins: 2500, prize_label: 'Grand 3rd', prize_etb: 1000 },
+      { position: 10, prize_coins: 500, prize_label: 'Top 10', prize_etb: 200 }
+    ],
+    max_entries: 200,
+    current_entries: 156,
+    start_time: getFutureDate(-3),
+    end_time: getFutureDate(4),
+    status: 'active',
+    min_level: 15,
+    contest_rules: ['Monthly championship', 'Level 15+ required', 'Massive guaranteed prizes'],
+    is_guaranteed: true
+  }
+];
+
+// ============ COIN BUNDLES ============
+export const COIN_BUNDLES: CoinBundle[] = [
+  {
+    bundle_id: 'bundle_starter',
+    name: 'Starter Pack',
+    coins: 100,
+    bonus_coins: 0,
+    price_etb: 20,
+    price_display: '20 Birr',
+    discount_percent: 0,
+    is_popular: false,
+    is_best_value: false
+  },
+  {
+    bundle_id: 'bundle_basic',
+    name: 'Basic Bundle',
+    coins: 500,
+    bonus_coins: 25,
+    price_etb: 95,
+    price_display: '95 Birr',
+    discount_percent: 5,
+    is_popular: false,
+    is_best_value: false
+  },
+  {
+    bundle_id: 'bundle_popular',
+    name: 'Popular Pack',
+    coins: 1000,
+    bonus_coins: 100,
+    price_etb: 180,
+    price_display: '180 Birr',
+    discount_percent: 10,
+    is_popular: true,
+    is_best_value: false
+  },
+  {
+    bundle_id: 'bundle_value',
+    name: 'Value Bundle',
+    coins: 2500,
+    bonus_coins: 375,
+    price_etb: 425,
+    price_display: '425 Birr',
+    discount_percent: 15,
+    is_popular: false,
+    is_best_value: true
+  },
+  {
+    bundle_id: 'bundle_premium',
+    name: 'Premium Pack',
+    coins: 5000,
+    bonus_coins: 1000,
+    price_etb: 800,
+    price_display: '800 Birr',
+    discount_percent: 20,
+    is_popular: false,
+    is_best_value: false
+  },
+  {
+    bundle_id: 'bundle_elite',
+    name: 'Elite Bundle',
+    coins: 10000,
+    bonus_coins: 2500,
+    price_etb: 1500,
+    price_display: '1,500 Birr',
+    discount_percent: 25,
+    is_popular: false,
+    is_best_value: false
+  }
+];
+
+// ============ MINI-GAMES CONFIGURATION ============
+export const MINI_GAMES: MiniGameConfig[] = [
+  {
+    id: 'penalty_shootout',
+    name: 'Penalty Shootout',
+    description: 'Score 5 penalties against the AI goalkeeper',
+    icon: '⚽',
+    unlock_level: 1,
+    cost_coins: 0,
+    daily_limit: 3,
+    max_reward_coins: 50,
+    xp_reward: 10,
+    rules: [
+      'Swipe to aim your shot',
+      'Tap to adjust power',
+      'Score as many as you can in 5 attempts',
+      '3+ goals = coins reward'
+    ]
+  },
+  {
+    id: 'price_predictor',
+    name: 'Price Predictor',
+    description: 'Predict if player prices will rise or fall',
+    icon: '📈',
+    unlock_level: 3,
+    cost_coins: 5,
+    daily_limit: 5,
+    max_reward_coins: 100,
+    xp_reward: 15,
+    rules: [
+      'Pick 5 players',
+      'Predict: Rise, Fall, or Same',
+      'Correct predictions earn coins',
+      '5/5 correct = jackpot bonus'
+    ]
+  },
+  {
+    id: 'formation_puzzle',
+    name: 'Formation Puzzle',
+    description: 'Arrange players in the correct formation',
+    icon: '🧩',
+    unlock_level: 5,
+    cost_coins: 10,
+    daily_limit: 3,
+    max_reward_coins: 75,
+    xp_reward: 20,
+    rules: [
+      'Given 11 players, arrange in formation',
+      'Beat the clock for bonus',
+      'Fewer moves = higher score',
+      'Daily puzzles refresh at midnight'
+    ]
+  },
+  {
+    id: 'match_predictor',
+    name: 'Match Predictor',
+    description: 'Predict match results for bonus coins',
+    icon: '🏆',
+    unlock_level: 7,
+    cost_coins: 20,
+    daily_limit: 3,
+    max_reward_coins: 200,
+    xp_reward: 25,
+    rules: [
+      'Predict exact scores',
+      'Partial credit for correct result',
+      'Bonus for correct scorers',
+      'Available before each GW'
+    ]
+  },
+  {
+    id: 'captain_roulette',
+    name: 'Captain Roulette',
+    description: 'Spin for a random captain suggestion',
+    icon: '🎰',
+    unlock_level: 10,
+    cost_coins: 25,
+    daily_limit: 2,
+    max_reward_coins: 150,
+    xp_reward: 30,
+    rules: [
+      'Spin the wheel',
+      'Get a captain suggestion',
+      'Use it for 2x bonus if they score big',
+      'Risk/reward mechanic'
+    ]
+  }
+];
+
+// ============ XP ACTIONS ============
+export const XP_ACTIONS: XPAction[] = [
+  { action: 'daily_login', xp: 10, daily_limit: 1, description: 'Log in daily' },
+  { action: 'complete_trivia', xp: 5, daily_limit: 5, description: 'Answer trivia correctly' },
+  { action: 'make_transfer', xp: 3, daily_limit: 10, description: 'Make a transfer' },
+  { action: 'set_captain', xp: 5, daily_limit: 1, description: 'Set your captain' },
+  { action: 'join_league', xp: 25, daily_limit: 3, description: 'Join a new league' },
+  { action: 'invite_friend', xp: 50, daily_limit: 5, description: 'Invite a friend who joins' },
+  { action: 'complete_quest', xp: 20, daily_limit: 3, description: 'Complete daily quest' },
+  { action: 'win_h2h', xp: 15, daily_limit: 10, description: 'Win H2H matchup' },
+  { action: 'showroom_checkin', xp: 25, daily_limit: 2, description: 'Check in at showroom' },
+  { action: 'contest_entry', xp: 10, daily_limit: 5, description: 'Enter a contest' },
+  { action: 'contest_win', xp: 100, daily_limit: 10, description: 'Win a contest (top 3)' },
+  { action: 'mini_game', xp: 10, daily_limit: 5, description: 'Play a mini-game' },
+  { action: 'survey_complete', xp: 15, daily_limit: 3, description: 'Complete a survey' },
+  { action: 'share_achievement', xp: 5, daily_limit: 3, description: 'Share to social media' },
+  { action: 'first_purchase', xp: 100, daily_limit: 1, description: 'Make first coin purchase' }
+];
+
+// ============ COFFEE HOUR CONFIGURATION ============
+export const COFFEE_HOUR_CONFIG: CoffeeHourConfig = {
+  enabled: true,
+  start_hour: 6,
+  end_hour: 9,
+  timezone: 'Africa/Addis_Ababa',
+  bonus_multiplier: 1.5,
+  bonus_types: ['xp', 'coins', 'trivia_rewards'],
+  special_rewards: [
+    { type: 'coins', amount: 10, chance: 0.3 },
+    { type: 'xp', amount: 25, chance: 0.5 },
+    { type: 'badge', badge_id: 'early_bird', chance: 0.05 }
+  ]
+};
+
+// ============ SURVEYS ============
+export const MOCK_SURVEYS: Survey[] = [
+  {
+    survey_id: 'survey_001',
+    sponsor: { name: 'Coca-Cola', logo_url: 'https://picsum.photos/50/50?random=coke' },
+    title: 'Beverage Preferences',
+    description: 'Share your soft drink preferences and earn coins!',
+    reward_coins: 50,
+    estimated_minutes: 2,
+    questions: [
+      {
+        id: 'q1',
+        type: 'multiple_choice',
+        question: 'How often do you buy soft drinks?',
+        options: ['Daily', 'Weekly', 'Monthly', 'Rarely'],
+        required: true
+      },
+      {
+        id: 'q2',
+        type: 'multiple_choice',
+        question: 'Which brand do you prefer?',
+        options: ['Coca-Cola', 'Pepsi', 'Mirinda', 'Sprite', 'Other'],
+        required: true
+      },
+      {
+        id: 'q3',
+        type: 'rating',
+        question: 'Rate your satisfaction with available options (1-5)',
+        min: 1,
+        max: 5,
+        required: false
+      }
+    ],
+    expiry_date: getFutureDate(7),
+    cooldown_days: 7,
+    status: 'active'
+  },
+  {
+    survey_id: 'survey_002',
+    sponsor: { name: 'Ethio Telecom', logo_url: 'https://picsum.photos/50/50?random=et' },
+    title: 'Mobile Data Usage',
+    description: 'Tell us about your data habits!',
+    reward_coins: 75,
+    estimated_minutes: 3,
+    questions: [
+      {
+        id: 'q1',
+        type: 'multiple_choice',
+        question: 'How much mobile data do you use monthly?',
+        options: ['<1GB', '1-5GB', '5-10GB', '10GB+'],
+        required: true
+      },
+      {
+        id: 'q2',
+        type: 'text',
+        question: 'What apps use most of your data?',
+        max_length: 200,
+        required: true
+      },
+      {
+        id: 'q3',
+        type: 'rating',
+        question: 'Rate your network satisfaction (1-5)',
+        min: 1,
+        max: 5,
+        required: true
+      }
+    ],
+    expiry_date: getFutureDate(14),
+    cooldown_days: 14,
+    status: 'active'
+  }
+];
+
