@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Sparkles, Send, Bot } from 'lucide-react';
 import { generateTransferAdvice } from '../services/geminiService';
 import { Player } from '../types';
-import ReactMarkdown from 'react-markdown'; // Assuming we'd install this, but using plain text for now if not available or rendering simply.
+import ReactMarkdown from 'react-markdown';
 
 interface AICoachProps {
   squad: Player[];
@@ -57,8 +58,8 @@ const AICoach: React.FC<AICoachProps> = ({ squad, bank }) => {
 
       {advice && (
         <div className="bg-black/20 rounded-lg p-4 animate-in fade-in slide-in-from-bottom-4">
-          <div className="prose prose-invert prose-sm max-w-none text-sm text-white/90 whitespace-pre-line">
-            {advice}
+          <div className="prose prose-invert prose-sm max-w-none text-sm text-white/90">
+            <ReactMarkdown>{advice}</ReactMarkdown>
           </div>
           <button 
             onClick={() => setAdvice(null)}

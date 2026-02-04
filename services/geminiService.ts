@@ -4,14 +4,25 @@ import { Player, Position } from "../types";
 
 // NOTE: In a production app, the key should be in a .env file.
 // We assume process.env.API_KEY is available and valid as per guidelines.
+// Polyfill handling: process.env.API_KEY might be empty string if not injected.
+const apiKey = process.env.API_KEY || '';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
+try {
+    ai = new GoogleGenAI({ apiKey });
+} catch (e) {
+    console.error("Failed to initialize GoogleGenAI", e);
+}
 
 export const generateTransferAdvice = async (
   currentTeam: Player[], 
   bankBalance: number,
   freeTransfers: number
 ): Promise<string> => {
+  if (!ai || !apiKey) {
+      return "AI Assistant is currently unavailable (Missing API Key).";
+  }
+
   const systemInstruction = `
     You are an expert Fantasy Premier League assistant for the Ethiopian market.
     Analyze the provided team and budget. Suggest 1-2 transfers to improve the team.
@@ -51,6 +62,10 @@ export const generateTransferAdvice = async (
 };
 
 export const generatePlayerInsight = async (player: Player): Promise<string> => {
+  if (!ai || !apiKey) {
+      return "Scout report unavailable (Missing API Key).";
+  }
+
   const systemInstruction = `
     You are an expert FPL scout. Provide a very brief (2-3 sentences) "Why Pick Me?" summary for the given player.
     Focus on their form, stats (goals/assists/cleansheets), and potential.
