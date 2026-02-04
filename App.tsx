@@ -29,6 +29,7 @@ import MiniGamesHub from './components/MiniGamesHub';
 import CoffeeHourBanner from './components/CoffeeHourBanner';
 import PenaltyShootout from './components/PenaltyShootout';
 import PricePredictor from './components/PricePredictor';
+import InfoTooltip from './components/InfoTooltip';
 import { calculateScore, generateRandomStats, MatchStats } from './scoring';
 
 // --- Sub-Components ---
@@ -907,15 +908,25 @@ const App: React.FC = () => {
       showToast(msg);
   };
 
-  // Tutorial Actions
+  // Tutorial Actions - Full Walkthrough Sequence
+  const WALKTHROUGH_SEQUENCE: TutorialStep[] = [
+      'WELCOME', 'WHAT_IS_FPL', 'SQUAD_RULES', 'POINTS', 'GAMEWEEK_EXPLAINED',
+      'CAPTAINCY', 'TRANSFERS_INTRO', 'CHIPS_EXPLAINED', 'LEAGUES_INTRO',
+      'COINS_AND_XP', 'DEADLINE'
+  ];
+
   const handleTutorialNext = () => {
-      switch (tutorialStep) {
-          case 'WELCOME': setTutorialStep('POINTS'); break;
-          case 'POINTS': setTutorialStep('TRANSFERS_INTRO'); break;
-          case 'TRANSFERS_INTRO': setActiveTab('transfers'); setTutorialStep('MARKET_GUIDE'); break;
-          case 'CAPTAINCY': setTutorialStep('DEADLINE'); break;
-          case 'DEADLINE': handleSaveTeam(); break;
-          default: setTutorialStep('HIDDEN');
+      const currentIndex = WALKTHROUGH_SEQUENCE.indexOf(tutorialStep);
+      if (currentIndex !== -1 && currentIndex < WALKTHROUGH_SEQUENCE.length - 1) {
+          // Progress to next step in walkthrough
+          setTutorialStep(WALKTHROUGH_SEQUENCE[currentIndex + 1]);
+      } else if (tutorialStep === 'DEADLINE') {
+          // Final step - complete onboarding
+          setTutorialStep('HIDDEN');
+          localStorage.setItem('fpl_eth_onboarding', 'done');
+          showToast('Tutorial complete! You\'re ready to play.', 'success');
+      } else {
+          setTutorialStep('HIDDEN');
       }
   };
 
@@ -928,6 +939,9 @@ const App: React.FC = () => {
       if (action === 'GOTO_TRANSFERS') {
           setActiveTab('transfers');
           setTutorialStep('MARKET_GUIDE');
+      } else if (action.startsWith('GOTO_STEP_')) {
+          const step = action.replace('GOTO_STEP_', '') as TutorialStep;
+          setTutorialStep(step);
       }
   };
 
@@ -1217,6 +1231,19 @@ const App: React.FC = () => {
              <div className="flex items-center gap-1 bg-yellow-500/20 px-2 py-1 rounded-full">
                <Coins size={12} className="text-yellow-400" />
                <span className="text-xs font-bold text-yellow-400">{coins}</span>
+               <InfoTooltip
+                 title="Coins"
+                 text="Coins are your in-game currency. Earn them by completing quests, winning trivia, checking in at showrooms, and playing mini-games."
+                 details={[
+                   "Use coins to enter contests for prizes",
+                   "Buy items in the shop",
+                   "Earned FREE by playing - no real money needed",
+                   "Can also purchase coin bundles with ETB"
+                 ]}
+                 iconClassName="text-yellow-400/60"
+                 position="bottom"
+                 size="sm"
+               />
              </div>
             <button
               onClick={() => { setActiveTab('wallet'); setIsWalletOpen(true); setWalletMode('deposit'); }}
@@ -1311,8 +1338,20 @@ const App: React.FC = () => {
             {/* Gameweek Deadline Card */}
             <div className={`rounded-2xl p-5 text-white shadow-lg relative overflow-hidden transition-all duration-500 ${gameweekStatus === GameweekStatus.ACTIVE ? 'bg-gradient-to-r from-pl-purple to-indigo-900' : 'bg-red-800'}`}>
               <div className="relative z-10">
-                <h2 className="text-sm opacity-80 uppercase tracking-wider mb-1">
+                <h2 className="text-sm opacity-80 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                     Gameweek {currentGW?.gameweek_number} {gameweekStatus === GameweekStatus.ACTIVE ? 'Deadline' : 'Locked'}
+                    <InfoTooltip
+                      title="What's a Gameweek?"
+                      text="The Premier League season has 38 Gameweeks. Each week, real matches are played and your fantasy players earn points based on their real-life performance."
+                      details={[
+                        "Before the deadline: set your team, make transfers, pick captain",
+                        "After deadline: team is locked, no changes allowed",
+                        "Points update live as real matches are played",
+                        "You get 1 free transfer per week"
+                      ]}
+                      iconClassName="text-white/40"
+                      position="bottom"
+                    />
                 </h2>
                 <div className="text-3xl font-bold font-mono">
                     {timeLeft}
@@ -1348,7 +1387,20 @@ const App: React.FC = () => {
             {/* Live In-Play Leaderboard Dashboard */}
              <div className="bg-gray-900 rounded-2xl p-4 text-white">
                 <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                    <h3 className="font-bold text-sm flex items-center gap-2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div> Live In-Play Leaderboard</h3>
+                    <h3 className="font-bold text-sm flex items-center gap-2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div> Live In-Play Leaderboard
+                    <InfoTooltip
+                      title="Live Leaderboard"
+                      text="This shows how you're performing right now compared to all players and your league rivals during live matches."
+                      details={[
+                        "Your Rank: Your position among all Ethiopian managers",
+                        "GW Points: Points your players have scored so far this week",
+                        "Players Playing: How many of your 11 starters still have matches",
+                        "Updates automatically as real matches happen"
+                      ]}
+                      iconClassName="text-gray-500"
+                      position="bottom"
+                    />
+                    </h3>
                     <span className="text-xs text-gray-400">GW37 • Live</span>
                 </div>
                 <div className="flex justify-between text-center divide-x divide-gray-700">
