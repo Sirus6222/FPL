@@ -364,3 +364,318 @@ export interface RankHistory {
   gameweek: number;
   rank: number;
 }
+
+// =============================================
+// SHOWROOM LEAGUES (from Spec Pack - Agent 3)
+// =============================================
+
+export type ShowroomVenueType = 'coffee_shop' | 'sports_bar' | 'betting_shop' | 'university' | 'corporate' | 'stadium';
+export type ShowroomTier = 'bronze' | 'silver' | 'gold' | 'platinum';
+export type ShowroomVerificationStatus = 'pending' | 'verified' | 'suspended' | 'rejected';
+
+export interface Showroom {
+  showroom_id: string;
+  name: string;
+  slug: string;
+  venue_type: ShowroomVenueType;
+  tier: ShowroomTier;
+
+  // Location
+  address?: string;
+  city: string;
+  sub_city?: string;
+  woreda?: string;
+  latitude?: number;
+  longitude?: number;
+
+  // Verification
+  business_license_url?: string;
+  verification_status: ShowroomVerificationStatus;
+  verified_at?: string;
+
+  // Branding
+  logo_url?: string;
+  cover_photo_url?: string;
+  description?: string;
+
+  // Settings
+  max_members: number;
+  join_radius_meters: number;
+  is_public: boolean;
+
+  // Stats
+  member_count: number;
+  active_member_count: number;
+  weekly_score: number;
+  city_rank?: number;
+
+  // Admin
+  admin_user_id?: string;
+
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ShowroomMembership {
+  membership_id: string;
+  showroom_id: string;
+  user_id: string;
+  role: 'member' | 'co_admin' | 'admin';
+  joined_via: 'qr_scan' | 'invite_link' | 'admin_add' | 'geo_suggest';
+  join_latitude?: number;
+  join_longitude?: number;
+  is_active: boolean;
+  last_active_at: string;
+  points_contributed_this_gw: number;
+  created_at: string;
+}
+
+export interface QRToken {
+  token_id: string;
+  showroom_id: string;
+  token_code: string; // Format: ETHFPL-V00123-R7K2M-X9Y
+  token_type: 'permanent' | 'temporary' | 'single_use';
+  is_active: boolean;
+  expires_at?: string;
+  max_uses?: number;
+  use_count: number;
+  created_at: string;
+}
+
+export interface ShowroomLeaderboardEntry {
+  showroom_id: string;
+  name: string;
+  logo_url?: string;
+  rank: number;
+  weekly_score: number;
+  member_count: number;
+  active_members: number;
+}
+
+// =============================================
+// CONTESTS & COMPETITIONS (from Spec Pack - Agent 5)
+// =============================================
+
+export type ContestType = 'free' | 'micro' | 'standard' | 'premium' | 'elite' | 'grand';
+export type ContestStatus = 'upcoming' | 'active' | 'calculating' | 'completed' | 'cancelled';
+
+export interface ContestPrize {
+  rank_range: string; // e.g., "1", "2-3", "4-10", "top_10%"
+  coins: number;
+  badge_id?: string;
+  physical_prize?: string;
+}
+
+export interface Contest {
+  contest_id: string;
+  name: string;
+  description?: string;
+  type: ContestType;
+
+  // Entry
+  entry_fee_coins: number;
+  max_entries?: number;
+
+  // Prizes
+  prize_structure: ContestPrize[];
+  total_prize_pool_coins: number;
+  sponsor_name?: string;
+
+  // Timing
+  gameweek?: number;
+  start_time: string;
+  end_time: string;
+
+  // Status
+  status: ContestStatus;
+  entry_count: number;
+
+  // User-specific
+  user_entered?: boolean;
+  user_rank?: number;
+  user_prize?: number;
+
+  created_at: string;
+}
+
+export interface ContestEntry {
+  entry_id: string;
+  contest_id: string;
+  user_id: string;
+  team_id: string;
+  squad_snapshot: Player[];
+  points: number;
+  rank?: number;
+  prize_coins: number;
+  prize_claimed: boolean;
+  entered_at: string;
+}
+
+// =============================================
+// MINI-GAMES (from Spec Pack - Agent 2)
+// =============================================
+
+export type MiniGameType = 'penalty_shootout' | 'free_kick' | 'tactics_quiz' | 'price_predictor' | 'captain_roulette';
+
+export interface MiniGameConfig {
+  id: MiniGameType;
+  name: string;
+  description: string;
+  unlock_level: number;
+  daily_limit: number;
+  time_seconds: number;
+  data_kb: number;
+}
+
+export interface MiniGameSession {
+  session_id: string;
+  user_id: string;
+  game_type: MiniGameType;
+  score: number;
+  max_score: number;
+  coins_earned: number;
+  xp_earned: number;
+  completed_at: string;
+}
+
+export interface PenaltyShootoutState {
+  shots_taken: number;
+  goals_scored: number;
+  current_aim: { x: number; y: number };
+}
+
+export interface PricePrediction {
+  player_id: number;
+  player_name: string;
+  current_price: number;
+  prediction: 'rise' | 'fall' | 'stay';
+  actual_result?: 'rise' | 'fall' | 'stay';
+  correct?: boolean;
+}
+
+// =============================================
+// SURVEYS & SPONSORSHIP (from Spec Pack - Agent 6)
+// =============================================
+
+export interface Survey {
+  survey_id: string;
+  sponsor_id?: string;
+  sponsor_name: string;
+  title: string;
+  description: string;
+  questions: SurveyQuestion[];
+  reward_coins: number;
+  estimated_time_seconds: number;
+  is_active: boolean;
+  expires_at?: string;
+}
+
+export interface SurveyQuestion {
+  question_id: string;
+  question_text: string;
+  question_type: 'multiple_choice' | 'rating' | 'text';
+  options?: string[];
+  is_required: boolean;
+}
+
+export interface SurveyResponse {
+  response_id: string;
+  survey_id: string;
+  user_id: string;
+  answers: { question_id: string; answer: string | number }[];
+  coins_earned: number;
+  completed_at: string;
+}
+
+// =============================================
+// COFFEE HOUR & TIME-BASED BONUSES (from Spec Pack - Agent 2)
+// =============================================
+
+export interface CoffeeHourConfig {
+  morning_start: string; // "09:00"
+  morning_end: string;   // "10:00"
+  afternoon_start: string; // "15:00"
+  afternoon_end: string;   // "16:00"
+  bonus_coins: number;
+  bonus_xp_multiplier: number;
+}
+
+// =============================================
+// TOURNAMENT MODE (from Spec Pack - Agent 4)
+// =============================================
+
+export type TournamentType = 'afcon' | 'world_cup' | 'champions_league' | 'europa_league';
+export type TournamentPhase = 'pre' | 'group_stage' | 'knockout' | 'post';
+
+export interface Tournament {
+  tournament_id: string;
+  name: string;
+  type: TournamentType;
+  phase: TournamentPhase;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  current_matchday?: number;
+  total_matchdays: number;
+}
+
+export interface TournamentEntry {
+  entry_id: string;
+  tournament_id: string;
+  user_id: string;
+  total_points: number;
+  rank?: number;
+  matchday_scores: { matchday: number; points: number }[];
+}
+
+// =============================================
+// COIN BUNDLES (from Spec Pack - Agent 5)
+// =============================================
+
+export interface CoinBundle {
+  bundle_id: string;
+  name: string;
+  coins: number;
+  bonus_coins: number;
+  price_birr: number;
+  tag?: 'popular' | 'best_value' | 'starter';
+  is_active: boolean;
+}
+
+// =============================================
+// XP ACTIONS (from Spec Pack - Agent 2)
+// =============================================
+
+export interface XPAction {
+  action_type: string;
+  xp_amount: number;
+  daily_cap: number;
+  description: string;
+}
+
+// =============================================
+// COMPLIANCE TERMINOLOGY (from Spec Pack - Agent 1)
+// =============================================
+
+export const COMPLIANCE_TERMS = {
+  // Gambling terms → Compliant replacements
+  prohibited: ['bet', 'betting', 'stake', 'wager', 'odds', 'payout', 'pot', 'jackpot', 'cash out', 'accumulator', 'tipster', 'punter', 'house edge', 'gamble', 'lucky'],
+  replacements: {
+    'bet': 'entry',
+    'betting': 'entering',
+    'stake': 'entry fee',
+    'wager': 'compete',
+    'odds': 'chances',
+    'payout': 'reward',
+    'pot': 'guaranteed prize',
+    'jackpot': 'grand prize',
+    'cash out': 'withdraw earnings',
+    'accumulator': 'multi-match challenge',
+    'tipster': 'analyst',
+    'punter': 'manager',
+    'house edge': 'platform fee',
+    'gamble': 'compete',
+    'lucky': 'skilled',
+    'win': 'earn'
+  }
+} as const;
