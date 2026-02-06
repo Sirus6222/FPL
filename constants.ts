@@ -1,5 +1,5 @@
 
-import { Player, Position, League, Transaction, TeamFixtures, TeamStats, RankHistory, PremierLeagueTeam, DailyQuest, TriviaQuestion, ChatMessage, Gameweek, LevelInfo, Badge, AvatarItem, LeagueMember, LeagueMatchup, PotInfo, Showroom, Contest, CoinBundle, MiniGameConfig, Survey, XPAction, CoffeeHourConfig } from './types';
+import { Player, Position, League, Transaction, TeamFixtures, TeamStats, RankHistory, PremierLeagueTeam, DailyQuest, TriviaQuestion, ChatMessage, Gameweek, LevelInfo, Badge, AvatarItem, LeagueMember, LeagueMatchup, PotInfo, Showroom, Contest, CoinBundle, MiniGameConfig, Survey, XPAction, CoffeeHourConfig, Sponsor, SponsorCampaign, SponsorAsset, SponsorPlacement, SponsorDashboardMetrics, AdminPlatformMetrics, AuditLogEntry, SponsorActivation, FeatureFlags } from './types';
 
 export const APP_NAME = "Ethiopian FPL";
 export const CURRENCY_SYMBOL = "ETB";
@@ -1915,6 +1915,454 @@ export const MOCK_SURVEYS: Survey[] = [
     expiry_date: getFutureDate(14),
     cooldown_days: 14,
     status: 'active'
+  }
+];
+
+// =============================================
+// FEATURE FLAGS
+// =============================================
+
+export const FEATURE_FLAGS: FeatureFlags = {
+  SPONSOR_MODULE: true,
+  SPONSOR_ACTIVATIONS: true,
+  SPONSOR_PORTAL: true,
+  ADMIN_PORTAL: true,
+  DEV_ROLE_SWITCHER: true,
+  SPONSOR_PUSH_NOTIFICATIONS: false,
+  REAL_ANALYTICS: false,
+};
+
+// =============================================
+// SPONSOR MODULE — MOCK DATA
+// =============================================
+
+export const MOCK_SPONSORS: Sponsor[] = [
+  {
+    sponsor_id: 'sp_telebirr',
+    name: 'Telebirr',
+    slug: 'telebirr',
+    tier: 'platinum',
+    status: 'active',
+    company_name: 'Ethio Telecom — Telebirr',
+    industry: 'Fintech / Telecom',
+    contact_email: 'partnerships@telebirr.com',
+    contact_phone: '+251-11-551-0000',
+    logo_url: 'https://picsum.photos/200/200?random=telebirr',
+    primary_color: '#00A651',
+    secondary_color: '#FFC107',
+    contract_start: '2025-01-01',
+    contract_end: '2025-12-31',
+    monthly_budget_birr: 500000,
+    prize_budget_birr: 200000,
+    max_leagues: 999,
+    max_campaigns: 999,
+    has_push_notifications: true,
+    has_survey_access: true,
+    has_showroom_activation: true,
+    has_realtime_dashboard: true,
+    total_impressions: 2450000,
+    total_engagements: 182000,
+    active_campaigns_count: 4,
+    created_at: '2025-01-01',
+    updated_at: '2025-02-01'
+  },
+  {
+    sponsor_id: 'sp_coca_cola',
+    name: 'Coca-Cola',
+    slug: 'coca-cola',
+    tier: 'gold',
+    status: 'active',
+    company_name: 'Coca-Cola Ethiopia',
+    industry: 'FMCG / Beverages',
+    contact_email: 'ethiopia@coca-cola.com',
+    logo_url: 'https://picsum.photos/200/200?random=coke',
+    primary_color: '#E61E2A',
+    secondary_color: '#FFFFFF',
+    contract_start: '2025-03-01',
+    contract_end: '2025-09-30',
+    monthly_budget_birr: 300000,
+    prize_budget_birr: 120000,
+    max_leagues: 10,
+    max_campaigns: 20,
+    has_push_notifications: true,
+    has_survey_access: true,
+    has_showroom_activation: true,
+    has_realtime_dashboard: false,
+    total_impressions: 1820000,
+    total_engagements: 134000,
+    active_campaigns_count: 3,
+    created_at: '2025-03-01',
+    updated_at: '2025-03-15'
+  },
+  {
+    sponsor_id: 'sp_heineken',
+    name: 'Heineken',
+    slug: 'heineken',
+    tier: 'silver',
+    status: 'active',
+    company_name: 'Heineken Breweries Ethiopia',
+    industry: 'Beverages',
+    contact_email: 'ethiopia@heineken.com',
+    logo_url: 'https://picsum.photos/200/200?random=heineken',
+    primary_color: '#00A100',
+    secondary_color: '#E8E8E8',
+    contract_start: '2025-02-01',
+    contract_end: '2025-08-31',
+    monthly_budget_birr: 150000,
+    prize_budget_birr: 60000,
+    max_leagues: 5,
+    max_campaigns: 10,
+    has_push_notifications: false,
+    has_survey_access: true,
+    has_showroom_activation: false,
+    has_realtime_dashboard: false,
+    total_impressions: 920000,
+    total_engagements: 67000,
+    active_campaigns_count: 2,
+    created_at: '2025-02-01',
+    updated_at: '2025-02-20'
+  },
+  {
+    sponsor_id: 'sp_ethio_telecom',
+    name: 'Ethio Telecom',
+    slug: 'ethio-telecom',
+    tier: 'platinum',
+    status: 'active',
+    company_name: 'Ethio Telecom',
+    industry: 'Telecommunications',
+    contact_email: 'sponsorships@ethiotelecom.et',
+    logo_url: 'https://picsum.photos/200/200?random=ethiotel',
+    primary_color: '#0066B3',
+    secondary_color: '#FFD700',
+    contract_start: '2025-01-15',
+    contract_end: '2025-12-31',
+    monthly_budget_birr: 450000,
+    prize_budget_birr: 180000,
+    max_leagues: 999,
+    max_campaigns: 999,
+    has_push_notifications: true,
+    has_survey_access: true,
+    has_showroom_activation: true,
+    has_realtime_dashboard: true,
+    total_impressions: 2100000,
+    total_engagements: 158000,
+    active_campaigns_count: 3,
+    created_at: '2025-01-15',
+    updated_at: '2025-02-10'
+  },
+  {
+    sponsor_id: 'sp_cbe',
+    name: 'CBE',
+    slug: 'cbe',
+    tier: 'bronze',
+    status: 'active',
+    company_name: 'Commercial Bank of Ethiopia',
+    industry: 'Banking / Finance',
+    contact_email: 'digital@combanketh.et',
+    logo_url: 'https://picsum.photos/200/200?random=cbe',
+    primary_color: '#1B3A5C',
+    secondary_color: '#C5A55A',
+    contract_start: '2025-04-01',
+    contract_end: '2025-10-31',
+    monthly_budget_birr: 80000,
+    prize_budget_birr: 30000,
+    max_leagues: 3,
+    max_campaigns: 5,
+    has_push_notifications: false,
+    has_survey_access: false,
+    has_showroom_activation: false,
+    has_realtime_dashboard: false,
+    total_impressions: 410000,
+    total_engagements: 28000,
+    active_campaigns_count: 1,
+    created_at: '2025-04-01',
+    updated_at: '2025-04-10'
+  }
+];
+
+export const MOCK_SPONSOR_CAMPAIGNS: SponsorCampaign[] = [
+  {
+    campaign_id: 'camp_001',
+    sponsor_id: 'sp_telebirr',
+    name: 'Telebirr Weekly Challenge',
+    description: 'Branded H2H league with weekly coin rewards for top managers',
+    type: 'branded_league',
+    status: 'active',
+    target_audience: { min_level: 1 },
+    budget_coins: 50000,
+    budget_birr: 100000,
+    prizes_allocated: [
+      { prize_id: 'pr_001', campaign_id: 'camp_001', sponsor_id: 'sp_telebirr', name: 'Weekly Winner Coins', description: '500 coins for weekly league winner', type: 'coins', value_birr: 0, value_coins: 500, quantity: 38, quantity_claimed: 12 },
+      { prize_id: 'pr_002', campaign_id: 'camp_001', sponsor_id: 'sp_telebirr', name: 'Season Grand Prize', description: '5,000 ETB Telebirr voucher for season champion', type: 'etb_voucher', value_birr: 5000, quantity: 1, quantity_claimed: 0 }
+    ],
+    start_date: '2025-01-01',
+    end_date: '2025-05-31',
+    linked_league_ids: ['league_telebirr_h2h'],
+    kpi_targets: { impressions: 500000, engagements: 50000, league_joins: 10000 },
+    kpi_actuals: { impressions: 340000, engagements: 32000, league_joins: 7200, contest_entries: 0, survey_completions: 0 },
+    created_at: '2025-01-01',
+    updated_at: '2025-02-15'
+  },
+  {
+    campaign_id: 'camp_002',
+    sponsor_id: 'sp_coca_cola',
+    name: 'Coca-Cola Showroom Activation',
+    description: 'Check in at partner venues for bonus coins and a chance to earn exclusive prizes',
+    type: 'showroom_activation',
+    status: 'active',
+    target_audience: { cities: ['Addis Ababa', 'Hawassa'] },
+    budget_coins: 30000,
+    budget_birr: 80000,
+    prizes_allocated: [
+      { prize_id: 'pr_003', campaign_id: 'camp_002', sponsor_id: 'sp_coca_cola', name: 'Coca-Cola Merch Pack', description: 'Branded jersey and cap', type: 'physical_product', value_birr: 1500, quantity: 50, quantity_claimed: 18 }
+    ],
+    start_date: '2025-03-01',
+    end_date: '2025-06-30',
+    linked_showroom_ids: ['sr_001', 'sr_002', 'sr_003'],
+    kpi_targets: { impressions: 200000, engagements: 25000 },
+    kpi_actuals: { impressions: 142000, engagements: 18500, league_joins: 0, contest_entries: 0, survey_completions: 0 },
+    created_at: '2025-03-01',
+    updated_at: '2025-03-20'
+  },
+  {
+    campaign_id: 'camp_003',
+    sponsor_id: 'sp_heineken',
+    name: 'Heineken Match Day Contest',
+    description: 'Predict the exact score during live matches for bonus rewards',
+    type: 'contest_sponsorship',
+    status: 'active',
+    budget_coins: 20000,
+    budget_birr: 50000,
+    prizes_allocated: [
+      { prize_id: 'pr_004', campaign_id: 'camp_003', sponsor_id: 'sp_heineken', name: 'Match Day Bonus', description: '200 coins per match prediction contest', type: 'coins', value_birr: 0, value_coins: 200, quantity: 100, quantity_claimed: 42 }
+    ],
+    start_date: '2025-02-01',
+    end_date: '2025-05-31',
+    linked_contest_ids: ['ct_001', 'ct_002'],
+    kpi_targets: { impressions: 150000, contest_entries: 8000 },
+    kpi_actuals: { impressions: 98000, engagements: 12000, league_joins: 0, contest_entries: 5200, survey_completions: 0 },
+    created_at: '2025-02-01',
+    updated_at: '2025-03-05'
+  },
+  {
+    campaign_id: 'camp_004',
+    sponsor_id: 'sp_ethio_telecom',
+    name: 'Ethio Telecom Data Survey',
+    description: 'Complete surveys about mobile data usage for data bundle rewards',
+    type: 'survey',
+    status: 'active',
+    budget_coins: 15000,
+    budget_birr: 40000,
+    prizes_allocated: [
+      { prize_id: 'pr_005', campaign_id: 'camp_004', sponsor_id: 'sp_ethio_telecom', name: '2GB Data Bundle', description: 'Free 2GB mobile data for survey completion', type: 'data_bundle', value_birr: 200, quantity: 200, quantity_claimed: 87 }
+    ],
+    start_date: '2025-01-15',
+    end_date: '2025-04-30',
+    linked_survey_id: 'survey_002',
+    kpi_targets: { survey_completions: 5000 },
+    kpi_actuals: { impressions: 180000, engagements: 9000, league_joins: 0, contest_entries: 0, survey_completions: 3200 },
+    created_at: '2025-01-15',
+    updated_at: '2025-02-20'
+  },
+  {
+    campaign_id: 'camp_005',
+    sponsor_id: 'sp_cbe',
+    name: 'CBE Financial Literacy Mission',
+    description: 'Complete financial literacy steps to earn coins and learn about CBE services',
+    type: 'mission',
+    status: 'draft',
+    budget_coins: 10000,
+    budget_birr: 25000,
+    prizes_allocated: [
+      { prize_id: 'pr_006', campaign_id: 'camp_005', sponsor_id: 'sp_cbe', name: 'CBE Bonus Coins', description: '100 coins for mission completion', type: 'coins', value_birr: 0, value_coins: 100, quantity: 500, quantity_claimed: 0 }
+    ],
+    start_date: '2025-05-01',
+    end_date: '2025-07-31',
+    kpi_targets: { engagements: 10000 },
+    kpi_actuals: { impressions: 0, engagements: 0, league_joins: 0, contest_entries: 0, survey_completions: 0 },
+    created_at: '2025-04-01',
+    updated_at: '2025-04-01'
+  }
+];
+
+export const MOCK_SPONSOR_ASSETS: SponsorAsset[] = [
+  { asset_id: 'ast_001', sponsor_id: 'sp_telebirr', type: 'logo', name: 'Telebirr Logo', url: 'https://picsum.photos/200/200?random=telebirr_logo', alt_text: 'Telebirr logo', width: 200, height: 200, file_size_kb: 45, is_approved: true, uploaded_at: '2025-01-01' },
+  { asset_id: 'ast_002', sponsor_id: 'sp_telebirr', type: 'banner', name: 'Telebirr Home Banner', url: 'https://picsum.photos/600/200?random=telebirr_banner', alt_text: 'Telebirr weekly challenge banner', width: 600, height: 200, file_size_kb: 120, is_approved: true, uploaded_at: '2025-01-02' },
+  { asset_id: 'ast_003', sponsor_id: 'sp_coca_cola', type: 'logo', name: 'Coca-Cola Logo', url: 'https://picsum.photos/200/200?random=coke_logo', alt_text: 'Coca-Cola logo', width: 200, height: 200, file_size_kb: 38, is_approved: true, uploaded_at: '2025-03-01' },
+  { asset_id: 'ast_004', sponsor_id: 'sp_heineken', type: 'logo', name: 'Heineken Logo', url: 'https://picsum.photos/200/200?random=heineken_logo', alt_text: 'Heineken logo', width: 200, height: 200, file_size_kb: 42, is_approved: true, uploaded_at: '2025-02-01' },
+  { asset_id: 'ast_005', sponsor_id: 'sp_ethio_telecom', type: 'banner', name: 'Ethio Telecom Survey Banner', url: 'https://picsum.photos/600/200?random=ethiotel_banner', alt_text: 'Ethio Telecom data survey', width: 600, height: 200, file_size_kb: 95, is_approved: true, uploaded_at: '2025-01-15' },
+  { asset_id: 'ast_006', sponsor_id: 'sp_cbe', type: 'logo', name: 'CBE Logo', url: 'https://picsum.photos/200/200?random=cbe_logo', alt_text: 'CBE logo', width: 200, height: 200, file_size_kb: 35, is_approved: false, uploaded_at: '2025-04-01' }
+];
+
+export const MOCK_SPONSOR_PLACEMENTS: SponsorPlacement[] = [
+  { placement_id: 'pl_001', campaign_id: 'camp_001', sponsor_id: 'sp_telebirr', slot: 'home_banner', asset_id: 'ast_002', click_through_url: '#telebirr-league', start_date: '2025-01-01', end_date: '2025-05-31', is_active: true, impressions: 340000, clicks: 18200, ctr: 5.35 },
+  { placement_id: 'pl_002', campaign_id: 'camp_002', sponsor_id: 'sp_coca_cola', slot: 'showroom_header', asset_id: 'ast_003', start_date: '2025-03-01', end_date: '2025-06-30', is_active: true, impressions: 142000, clicks: 9800, ctr: 6.90 },
+  { placement_id: 'pl_003', campaign_id: 'camp_003', sponsor_id: 'sp_heineken', slot: 'contest_card', asset_id: 'ast_004', start_date: '2025-02-01', end_date: '2025-05-31', is_active: true, impressions: 98000, clicks: 7100, ctr: 7.24 },
+  { placement_id: 'pl_004', campaign_id: 'camp_004', sponsor_id: 'sp_ethio_telecom', slot: 'survey_header', asset_id: 'ast_005', start_date: '2025-01-15', end_date: '2025-04-30', is_active: true, impressions: 180000, clicks: 11400, ctr: 6.33 }
+];
+
+const generateDailyData = (days: number, baseValue: number, variance: number): { date: string; value: number }[] => {
+  const data: { date: string; value: number }[] = [];
+  const now = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    data.push({
+      date: d.toISOString().split('T')[0],
+      value: Math.round(baseValue + (Math.random() - 0.4) * variance)
+    });
+  }
+  return data;
+};
+
+export const MOCK_SPONSOR_DASHBOARD_METRICS: SponsorDashboardMetrics = {
+  sponsor_id: 'sp_telebirr',
+  period: '30d',
+  total_impressions: 340000,
+  unique_users_reached: 82000,
+  total_engagements: 32000,
+  engagement_rate: 9.41,
+  avg_session_duration_seconds: 245,
+  active_campaigns: 4,
+  total_campaigns: 6,
+  campaign_completion_rate: 33.3,
+  sponsored_league_members: 7200,
+  league_join_rate: 8.78,
+  sponsored_contest_entries: 5200,
+  contest_entry_rate: 6.34,
+  survey_completions: 3200,
+  survey_completion_rate: 64.0,
+  avg_survey_score: 4.2,
+  cost_per_engagement_birr: 3.12,
+  cost_per_impression_birr: 0.29,
+  daily_impressions: generateDailyData(30, 11000, 4000),
+  daily_engagements: generateDailyData(30, 1050, 400)
+};
+
+export const MOCK_ADMIN_PLATFORM_METRICS: AdminPlatformMetrics = {
+  period: '30d',
+  total_users: 125000,
+  dau: 34000,
+  mau: 98000,
+  dau_mau_ratio: 34.7,
+  new_registrations: 4200,
+  total_sponsor_revenue_birr: 1580000,
+  total_coin_purchases_birr: 620000,
+  arpu_birr: 17.6,
+  total_sponsors: 5,
+  active_sponsors: 4,
+  sponsor_retention_rate: 80.0,
+  avg_sessions_per_day: 2.8,
+  avg_session_duration_seconds: 312,
+  contest_participation_rate: 42.5,
+  showroom_checkin_rate: 18.3,
+  sponsor_tier_distribution: [
+    { tier: 'platinum', count: 2 },
+    { tier: 'gold', count: 1 },
+    { tier: 'silver', count: 1 },
+    { tier: 'bronze', count: 1 }
+  ],
+  top_sponsors_by_spend: [
+    { sponsor_id: 'sp_telebirr', name: 'Telebirr', spend: 600000 },
+    { sponsor_id: 'sp_ethio_telecom', name: 'Ethio Telecom', spend: 490000 },
+    { sponsor_id: 'sp_coca_cola', name: 'Coca-Cola', spend: 300000 },
+    { sponsor_id: 'sp_heineken', name: 'Heineken', spend: 150000 },
+    { sponsor_id: 'sp_cbe', name: 'CBE', spend: 40000 }
+  ],
+  daily_active_users: generateDailyData(30, 34000, 8000),
+  daily_revenue: generateDailyData(30, 73000, 25000)
+};
+
+export const MOCK_AUDIT_LOGS: AuditLogEntry[] = [
+  { log_id: 'audit_001', actor_user_id: 'u_admin_1', actor_name: 'Dawit Bekele', actor_role: 'admin_super', action: 'sponsor_created', resource_type: 'sponsor', resource_id: 'sp_telebirr', resource_name: 'Telebirr', details: { tier: 'platinum', contract_value: 500000 }, timestamp: '2025-01-01T09:00:00Z' },
+  { log_id: 'audit_002', actor_user_id: 'u_sponsor_1', actor_name: 'Sara Hailu', actor_role: 'sponsor_manager', action: 'campaign_created', resource_type: 'campaign', resource_id: 'camp_001', resource_name: 'Telebirr Weekly Challenge', sponsor_id: 'sp_telebirr', details: { type: 'branded_league', budget_birr: 100000 }, timestamp: '2025-01-02T10:30:00Z' },
+  { log_id: 'audit_003', actor_user_id: 'u_admin_1', actor_name: 'Dawit Bekele', actor_role: 'admin_super', action: 'campaign_activated', resource_type: 'campaign', resource_id: 'camp_001', resource_name: 'Telebirr Weekly Challenge', sponsor_id: 'sp_telebirr', details: { previous_status: 'pending_approval' }, timestamp: '2025-01-03T14:00:00Z' },
+  { log_id: 'audit_004', actor_user_id: 'u_sponsor_2', actor_name: 'Meron Tadesse', actor_role: 'sponsor_manager', action: 'asset_uploaded', resource_type: 'asset', resource_id: 'ast_003', resource_name: 'Coca-Cola Logo', sponsor_id: 'sp_coca_cola', details: { type: 'logo', file_size_kb: 38 }, timestamp: '2025-03-01T11:15:00Z' },
+  { log_id: 'audit_005', actor_user_id: 'u_admin_2', actor_name: 'Yonas Gebre', actor_role: 'admin_analyst', action: 'dashboard_viewed', resource_type: 'sponsor', resource_id: 'sp_telebirr', resource_name: 'Telebirr', sponsor_id: 'sp_telebirr', details: { page: 'sponsor_dashboard', period: '30d' }, timestamp: '2025-02-15T08:45:00Z' },
+  { log_id: 'audit_006', actor_user_id: 'u_admin_1', actor_name: 'Dawit Bekele', actor_role: 'admin_super', action: 'role_granted', resource_type: 'role', resource_id: 'u_sponsor_1', resource_name: 'Sara Hailu', sponsor_id: 'sp_telebirr', details: { role: 'sponsor_manager', sponsor_id: 'sp_telebirr' }, timestamp: '2025-01-01T08:30:00Z' }
+];
+
+export const MOCK_SPONSOR_ACTIVATIONS: SponsorActivation[] = [
+  {
+    activation_id: 'act_001',
+    sponsor_id: 'sp_telebirr',
+    sponsor_name: 'Telebirr',
+    sponsor_logo_url: 'https://picsum.photos/100/100?random=telebirr_act',
+    sponsor_color: '#00A651',
+    campaign_id: 'camp_001',
+    type: 'coin_drop',
+    title: 'Telebirr Coin Drop',
+    description: 'Claim 50 free coins — courtesy of Telebirr!',
+    reward_coins: 50,
+    start_date: '2025-02-01',
+    end_date: '2025-05-31',
+    is_active: true,
+    max_claims: 10000,
+    claims_count: 4200,
+    user_claimed: false,
+    compliance_label: 'Sponsored reward by Telebirr'
+  },
+  {
+    activation_id: 'act_002',
+    sponsor_id: 'sp_coca_cola',
+    sponsor_name: 'Coca-Cola',
+    sponsor_logo_url: 'https://picsum.photos/100/100?random=coke_act',
+    sponsor_color: '#E61E2A',
+    campaign_id: 'camp_002',
+    type: 'bonus_xp',
+    title: 'Coca-Cola Double XP Hour',
+    description: 'Earn 2x XP on all actions for the next 60 minutes!',
+    reward_xp: 200,
+    start_date: '2025-03-01',
+    end_date: '2025-06-30',
+    is_active: true,
+    max_claims: 5000,
+    claims_count: 1800,
+    user_claimed: false,
+    compliance_label: 'Sponsored reward by Coca-Cola'
+  },
+  {
+    activation_id: 'act_003',
+    sponsor_id: 'sp_ethio_telecom',
+    sponsor_name: 'Ethio Telecom',
+    sponsor_logo_url: 'https://picsum.photos/100/100?random=ethiotel_act',
+    sponsor_color: '#0066B3',
+    campaign_id: 'camp_004',
+    type: 'mission',
+    title: 'Ethio Telecom Data Quest',
+    description: 'Complete 3 steps to earn a free 2GB data bundle!',
+    reward_coins: 75,
+    mission_steps: [
+      { step_id: 'ms_001', description: 'Complete the Mobile Data survey', action_type: 'complete_survey', target_id: 'survey_002', is_completed: false },
+      { step_id: 'ms_002', description: 'Check in at any Showroom venue', action_type: 'check_in', is_completed: false },
+      { step_id: 'ms_003', description: 'Enter any sponsored contest', action_type: 'enter_contest', is_completed: false }
+    ],
+    start_date: '2025-01-15',
+    end_date: '2025-04-30',
+    is_active: true,
+    max_claims: 2000,
+    claims_count: 870,
+    user_claimed: false,
+    compliance_label: 'Sponsored reward by Ethio Telecom'
+  },
+  {
+    activation_id: 'act_004',
+    sponsor_id: 'sp_heineken',
+    sponsor_name: 'Heineken',
+    sponsor_logo_url: 'https://picsum.photos/100/100?random=heineken_act',
+    sponsor_color: '#00A100',
+    campaign_id: 'camp_003',
+    type: 'flash_deal',
+    title: 'Heineken Match Day Flash',
+    description: 'Enter the match day prediction contest at 50% off entry fee!',
+    reward_coins: 25,
+    start_date: '2025-02-01',
+    end_date: '2025-05-31',
+    is_active: true,
+    max_claims: 3000,
+    claims_count: 1100,
+    user_claimed: false,
+    compliance_label: 'Sponsored reward by Heineken'
   }
 ];
 

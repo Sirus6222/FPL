@@ -679,3 +679,349 @@ export const COMPLIANCE_TERMS = {
     'win': 'earn'
   }
 } as const;
+
+// =============================================
+// RBAC & PERMISSIONS (Sponsor Module)
+// =============================================
+
+export type UserRole = 'user' | 'sponsor_viewer' | 'sponsor_manager' | 'admin_analyst' | 'admin_super';
+
+export type PermissionAction =
+  | 'sponsor:view_dashboard'
+  | 'sponsor:manage_campaigns'
+  | 'sponsor:manage_assets'
+  | 'sponsor:manage_surveys'
+  | 'sponsor:view_analytics'
+  | 'sponsor:export_data'
+  | 'admin:view_all_sponsors'
+  | 'admin:manage_users'
+  | 'admin:view_platform_analytics'
+  | 'admin:manage_feature_flags'
+  | 'admin:view_audit_logs';
+
+export interface UserRoleAssignment {
+  assignment_id: string;
+  user_id: string;
+  role: UserRole;
+  sponsor_id?: string;
+  granted_by: string;
+  granted_at: string;
+  expires_at?: string;
+  is_active: boolean;
+}
+
+export const ROLE_PERMISSIONS: Record<UserRole, PermissionAction[]> = {
+  user: [],
+  sponsor_viewer: ['sponsor:view_dashboard', 'sponsor:view_analytics'],
+  sponsor_manager: [
+    'sponsor:view_dashboard', 'sponsor:manage_campaigns',
+    'sponsor:manage_assets', 'sponsor:manage_surveys',
+    'sponsor:view_analytics', 'sponsor:export_data'
+  ],
+  admin_analyst: [
+    'admin:view_all_sponsors', 'admin:view_platform_analytics',
+    'admin:view_audit_logs'
+  ],
+  admin_super: [
+    'admin:view_all_sponsors', 'admin:manage_users',
+    'admin:view_platform_analytics', 'admin:manage_feature_flags',
+    'admin:view_audit_logs', 'sponsor:view_dashboard',
+    'sponsor:manage_campaigns', 'sponsor:manage_assets',
+    'sponsor:manage_surveys', 'sponsor:view_analytics',
+    'sponsor:export_data'
+  ]
+};
+
+// =============================================
+// SPONSOR ENTITIES
+// =============================================
+
+export type SponsorTier = 'bronze' | 'silver' | 'gold' | 'platinum';
+export type SponsorStatus = 'pending' | 'active' | 'suspended' | 'churned';
+export type CampaignStatus = 'draft' | 'pending_approval' | 'active' | 'paused' | 'completed' | 'cancelled';
+export type CampaignType = 'branded_league' | 'contest_sponsorship' | 'showroom_activation' | 'survey' | 'coin_drop' | 'bonus_xp' | 'mission';
+export type AssetType = 'logo' | 'banner' | 'icon' | 'video_thumbnail' | 'splash_screen';
+export type PlacementSlot =
+  | 'home_banner' | 'contest_card' | 'league_badge'
+  | 'showroom_header' | 'survey_header' | 'mini_game_interstitial'
+  | 'coin_shop_featured' | 'notification_sponsor';
+
+export interface Sponsor {
+  sponsor_id: string;
+  name: string;
+  slug: string;
+  tier: SponsorTier;
+  status: SponsorStatus;
+  company_name: string;
+  industry: string;
+  contact_email: string;
+  contact_phone?: string;
+  logo_url: string;
+  primary_color: string;
+  secondary_color?: string;
+  contract_start: string;
+  contract_end: string;
+  monthly_budget_birr: number;
+  prize_budget_birr: number;
+  max_leagues: number;
+  max_campaigns: number;
+  has_push_notifications: boolean;
+  has_survey_access: boolean;
+  has_showroom_activation: boolean;
+  has_realtime_dashboard: boolean;
+  total_impressions: number;
+  total_engagements: number;
+  active_campaigns_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SponsorCampaign {
+  campaign_id: string;
+  sponsor_id: string;
+  name: string;
+  description?: string;
+  type: CampaignType;
+  status: CampaignStatus;
+  target_audience?: {
+    min_level?: number;
+    max_level?: number;
+    cities?: string[];
+    venue_types?: string[];
+  };
+  budget_coins: number;
+  budget_birr: number;
+  prizes_allocated: SponsorPrize[];
+  start_date: string;
+  end_date: string;
+  linked_league_ids?: string[];
+  linked_contest_ids?: string[];
+  linked_showroom_ids?: string[];
+  linked_survey_id?: string;
+  kpi_targets: {
+    impressions?: number;
+    engagements?: number;
+    league_joins?: number;
+    contest_entries?: number;
+    survey_completions?: number;
+  };
+  kpi_actuals: {
+    impressions: number;
+    engagements: number;
+    league_joins: number;
+    contest_entries: number;
+    survey_completions: number;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SponsorAsset {
+  asset_id: string;
+  sponsor_id: string;
+  type: AssetType;
+  name: string;
+  url: string;
+  alt_text: string;
+  width?: number;
+  height?: number;
+  file_size_kb?: number;
+  is_approved: boolean;
+  uploaded_at: string;
+}
+
+export interface SponsorPlacement {
+  placement_id: string;
+  campaign_id: string;
+  sponsor_id: string;
+  slot: PlacementSlot;
+  asset_id: string;
+  click_through_url?: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+}
+
+export interface SponsorPrize {
+  prize_id: string;
+  campaign_id: string;
+  sponsor_id: string;
+  name: string;
+  description: string;
+  type: 'coins' | 'etb_voucher' | 'data_bundle' | 'physical_product' | 'experience';
+  value_birr: number;
+  value_coins?: number;
+  quantity: number;
+  quantity_claimed: number;
+  image_url?: string;
+}
+
+export interface SponsorLeagueLink {
+  link_id: string;
+  sponsor_id: string;
+  campaign_id: string;
+  league_id: number;
+  branding_config: {
+    show_logo: boolean;
+    show_banner: boolean;
+    custom_name_prefix?: string;
+    custom_color?: string;
+  };
+  is_active: boolean;
+  created_at: string;
+}
+
+// =============================================
+// SPONSOR ANALYTICS & KPI DASHBOARDS
+// =============================================
+
+export interface DailyDataPoint {
+  date: string;
+  value: number;
+}
+
+export interface SponsorDashboardMetrics {
+  sponsor_id: string;
+  period: 'today' | '7d' | '30d' | 'all_time';
+  total_impressions: number;
+  unique_users_reached: number;
+  total_engagements: number;
+  engagement_rate: number;
+  avg_session_duration_seconds: number;
+  active_campaigns: number;
+  total_campaigns: number;
+  campaign_completion_rate: number;
+  sponsored_league_members: number;
+  league_join_rate: number;
+  sponsored_contest_entries: number;
+  contest_entry_rate: number;
+  survey_completions: number;
+  survey_completion_rate: number;
+  avg_survey_score: number;
+  cost_per_engagement_birr: number;
+  cost_per_impression_birr: number;
+  daily_impressions: DailyDataPoint[];
+  daily_engagements: DailyDataPoint[];
+}
+
+export interface AdminPlatformMetrics {
+  period: 'today' | '7d' | '30d' | 'all_time';
+  total_users: number;
+  dau: number;
+  mau: number;
+  dau_mau_ratio: number;
+  new_registrations: number;
+  total_sponsor_revenue_birr: number;
+  total_coin_purchases_birr: number;
+  arpu_birr: number;
+  total_sponsors: number;
+  active_sponsors: number;
+  sponsor_retention_rate: number;
+  avg_sessions_per_day: number;
+  avg_session_duration_seconds: number;
+  contest_participation_rate: number;
+  showroom_checkin_rate: number;
+  sponsor_tier_distribution: { tier: SponsorTier; count: number }[];
+  top_sponsors_by_spend: { sponsor_id: string; name: string; spend: number }[];
+  daily_active_users: DailyDataPoint[];
+  daily_revenue: DailyDataPoint[];
+}
+
+export type AnalyticsEventType =
+  | 'sponsor_impression' | 'sponsor_click' | 'sponsor_engagement'
+  | 'campaign_view' | 'league_join_sponsored' | 'contest_enter_sponsored'
+  | 'survey_start' | 'survey_complete' | 'survey_skip'
+  | 'coin_drop_claim' | 'bonus_xp_earn' | 'mission_complete'
+  | 'placement_impression' | 'placement_click';
+
+export interface AnalyticsEvent {
+  event_id: string;
+  event_type: AnalyticsEventType;
+  user_id: string;
+  sponsor_id?: string;
+  campaign_id?: string;
+  placement_id?: string;
+  metadata?: Record<string, string | number>;
+  timestamp: string;
+}
+
+// =============================================
+// AUDIT LOGS
+// =============================================
+
+export type AuditAction =
+  | 'sponsor_created' | 'sponsor_updated' | 'sponsor_suspended'
+  | 'campaign_created' | 'campaign_updated' | 'campaign_activated' | 'campaign_paused'
+  | 'asset_uploaded' | 'asset_approved' | 'asset_rejected'
+  | 'placement_created' | 'placement_updated'
+  | 'survey_created' | 'survey_published'
+  | 'role_granted' | 'role_revoked'
+  | 'data_exported' | 'dashboard_viewed'
+  | 'prize_allocated' | 'prize_distributed';
+
+export interface AuditLogEntry {
+  log_id: string;
+  actor_user_id: string;
+  actor_name: string;
+  actor_role: UserRole;
+  action: AuditAction;
+  resource_type: 'sponsor' | 'campaign' | 'asset' | 'placement' | 'survey' | 'role' | 'prize';
+  resource_id: string;
+  resource_name?: string;
+  sponsor_id?: string;
+  details: Record<string, any>;
+  ip_address?: string;
+  timestamp: string;
+}
+
+// =============================================
+// SPONSOR ACTIVATIONS (User-Facing)
+// =============================================
+
+export type ActivationType = 'coin_drop' | 'bonus_xp' | 'mission' | 'flash_deal';
+
+export interface SponsorActivation {
+  activation_id: string;
+  sponsor_id: string;
+  sponsor_name: string;
+  sponsor_logo_url: string;
+  sponsor_color: string;
+  campaign_id: string;
+  type: ActivationType;
+  title: string;
+  description: string;
+  reward_coins?: number;
+  reward_xp?: number;
+  reward_badge_id?: string;
+  mission_steps?: {
+    step_id: string;
+    description: string;
+    action_type: string;
+    target_id?: string;
+    is_completed: boolean;
+  }[];
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  max_claims?: number;
+  claims_count: number;
+  user_claimed?: boolean;
+  compliance_label: string;
+}
+
+// =============================================
+// FEATURE FLAGS
+// =============================================
+
+export interface FeatureFlags {
+  SPONSOR_MODULE: boolean;
+  SPONSOR_ACTIVATIONS: boolean;
+  SPONSOR_PORTAL: boolean;
+  ADMIN_PORTAL: boolean;
+  DEV_ROLE_SWITCHER: boolean;
+  SPONSOR_PUSH_NOTIFICATIONS: boolean;
+  REAL_ANALYTICS: boolean;
+}

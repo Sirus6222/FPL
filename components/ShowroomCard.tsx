@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapPin, Users, Trophy, QrCode, Wifi, Star, Clock } from 'lucide-react';
 import { Showroom } from '../types';
+import SponsorBrandBanner from './SponsorBrandBanner';
 
 interface ShowroomCardProps {
   showroom: Showroom;
@@ -49,8 +50,13 @@ const ShowroomCard: React.FC<ShowroomCardProps> = ({ showroom, onSelect, isCheck
           <div className="text-2xl">{tierBadges[showroom.tier]}</div>
         </div>
         {showroom.branding?.sponsor_name && (
-          <div className="mt-2 text-[10px] bg-white/20 inline-block px-2 py-0.5 rounded-full">
-            Sponsored by {showroom.branding.sponsor_name}
+          <div className="mt-2">
+            <SponsorBrandBanner
+              sponsorName={showroom.branding.sponsor_name}
+              sponsorLogoUrl={showroom.branding.logo_url}
+              sponsorColor={showroom.branding.primary_color}
+              variant="badge"
+            />
           </div>
         )}
       </div>

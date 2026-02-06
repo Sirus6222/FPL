@@ -1,6 +1,7 @@
 import React from 'react';
 import { Trophy, Users, Clock, Coins, Lock, Gift, ChevronRight } from 'lucide-react';
 import { Contest } from '../types';
+import SponsorBrandBanner from './SponsorBrandBanner';
 
 interface ContestCardProps {
   contest: Contest;
@@ -62,10 +63,10 @@ const ContestCard: React.FC<ContestCardProps> = ({ contest, userLevel, userCoins
             <h3 className="font-bold text-sm line-clamp-1">{contest.name}</h3>
           </div>
           {contest.sponsor && (
-            <img
-              src={contest.sponsor.logo_url}
-              alt={contest.sponsor.name}
-              className="w-8 h-8 rounded-full border-2 border-white/30"
+            <SponsorBrandBanner
+              sponsorName={contest.sponsor.name}
+              sponsorLogoUrl={contest.sponsor.logo_url}
+              variant="badge"
             />
           )}
         </div>

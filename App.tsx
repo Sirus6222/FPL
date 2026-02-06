@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Users, Shirt, Wallet, Trophy, Bell, Menu, Plus, ArrowLeftRight, Settings, Send, Globe, BarChart2, TrendingUp, TrendingDown, Shield, RefreshCw, MessageCircle, Star, Zap, Lock, CheckCircle, AlertTriangle, AlertOctagon, PlayCircle, MapPin, Building2, GraduationCap, Coins, Gamepad2, Store, Coffee } from 'lucide-react';
-import { MOCK_PLAYERS, MOCK_LEAGUES, MOCK_TRANSACTIONS, CURRENCY_SYMBOL, TRANSLATIONS, MOCK_DAILY_QUESTS, MOCK_TRIVIA, MOCK_GAMEWEEKS, LEVELS_CONFIG, getTeamFixtures, TEAMS, MOCK_SHOWROOMS, MOCK_CONTESTS, COIN_BUNDLES, MINI_GAMES, COFFEE_HOUR_CONFIG, XP_ACTIONS } from './constants';
-import { Player, Position, GameweekStatus, League, Notification, ChipType, DailyQuest, Contest, MiniGameConfig, CoinBundle } from './types';
+import { Users, Shirt, Wallet, Trophy, Bell, Menu, Plus, ArrowLeftRight, Settings, Send, Globe, BarChart2, TrendingUp, TrendingDown, Shield, RefreshCw, MessageCircle, Star, Zap, Lock, CheckCircle, AlertTriangle, AlertOctagon, PlayCircle, MapPin, Building2, GraduationCap, Coins, Gamepad2, Store, Coffee, Gift, Activity } from 'lucide-react';
+import { MOCK_PLAYERS, MOCK_LEAGUES, MOCK_TRANSACTIONS, CURRENCY_SYMBOL, TRANSLATIONS, MOCK_DAILY_QUESTS, MOCK_TRIVIA, MOCK_GAMEWEEKS, LEVELS_CONFIG, getTeamFixtures, TEAMS, MOCK_SHOWROOMS, MOCK_CONTESTS, COIN_BUNDLES, MINI_GAMES, COFFEE_HOUR_CONFIG, XP_ACTIONS, MOCK_SPONSORS, MOCK_SPONSOR_CAMPAIGNS, MOCK_SPONSOR_ASSETS, MOCK_SPONSOR_ACTIVATIONS, MOCK_SPONSOR_DASHBOARD_METRICS, MOCK_ADMIN_PLATFORM_METRICS, MOCK_AUDIT_LOGS, FEATURE_FLAGS } from './constants';
+import { Player, Position, GameweekStatus, League, Notification, ChipType, DailyQuest, Contest, MiniGameConfig, CoinBundle, UserRole, SponsorActivation } from './types';
 import Pitch from './components/Pitch';
 import WalletModal from './components/WalletModal';
 import TransferMarket from './components/TransferMarket';
@@ -30,6 +30,10 @@ import CoffeeHourBanner from './components/CoffeeHourBanner';
 import PenaltyShootout from './components/PenaltyShootout';
 import PricePredictor from './components/PricePredictor';
 import InfoTooltip from './components/InfoTooltip';
+import SponsorPortal from './components/SponsorPortal';
+import AdminPortal from './components/AdminPortal';
+import SponsorActivationCard from './components/SponsorActivationCard';
+import SponsorActivationHub from './components/SponsorActivationHub';
 import { calculateScore, generateRandomStats, MatchStats } from './scoring';
 
 // --- Sub-Components ---
@@ -285,6 +289,16 @@ const App: React.FC = () => {
   const [checkedInShowrooms, setCheckedInShowrooms] = useState<string[]>([]);
   const [miniGamePlays, setMiniGamePlays] = useState<{[gameId: string]: number}>({});
   const [coffeeHourClaimed, setCoffeeHourClaimed] = useState(false);
+
+  // Sponsor & Admin Portal State
+  const [isSponsorPortalOpen, setIsSponsorPortalOpen] = useState(false);
+  const [isAdminPortalOpen, setIsAdminPortalOpen] = useState(false);
+  const [isSponsorActivationsOpen, setIsSponsorActivationsOpen] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<UserRole>('user');
+  const [currentSponsorId, setCurrentSponsorId] = useState<string | null>(null);
+  const [devRoleOverride, setDevRoleOverride] = useState<UserRole | null>(null);
+  const effectiveRole = devRoleOverride || currentUserRole;
+  const [claimedActivations, setClaimedActivations] = useState<string[]>([]);
 
   const [language, setLanguage] = useState<'en' | 'am'>('en');
   
@@ -1335,6 +1349,38 @@ const App: React.FC = () => {
               </button>
             </div>
 
+            {/* Sponsored Rewards Carousel */}
+            {FEATURE_FLAGS.SPONSOR_ACTIVATIONS && MOCK_SPONSOR_ACTIVATIONS.filter(a => a.is_active && !claimedActivations.includes(a.activation_id)).length > 0 && (
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-bold text-sm text-gray-800 flex items-center gap-1.5">
+                    <Gift size={14} className="text-purple-500" />
+                    Sponsored Rewards
+                  </h3>
+                  <button
+                    onClick={() => setIsSponsorActivationsOpen(true)}
+                    className="text-xs text-purple-600 font-medium"
+                  >
+                    See All
+                  </button>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                  {MOCK_SPONSOR_ACTIVATIONS.filter(a => a.is_active && !claimedActivations.includes(a.activation_id)).slice(0, 3).map(activation => (
+                    <SponsorActivationCard
+                      key={activation.activation_id}
+                      activation={{...activation, user_claimed: claimedActivations.includes(activation.activation_id)}}
+                      onClaim={(act) => {
+                        setClaimedActivations(prev => [...prev, act.activation_id]);
+                        setCoins(prev => prev + (act.reward_coins || 0));
+                        if (act.reward_xp) setXp(prev => prev + act.reward_xp!);
+                        setToast({ message: `Claimed ${act.reward_coins || 0} coins from ${act.sponsor_name}!`, type: 'success' });
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Gameweek Deadline Card */}
             <div className={`rounded-2xl p-5 text-white shadow-lg relative overflow-hidden transition-all duration-500 ${gameweekStatus === GameweekStatus.ACTIVE ? 'bg-gradient-to-r from-pl-purple to-indigo-900' : 'bg-red-800'}`}>
               <div className="relative z-10">
@@ -1840,6 +1886,92 @@ const App: React.FC = () => {
           onComplete={handleMiniGameComplete}
           onClose={() => setActiveMiniGame(null)}
         />
+      )}
+
+      {/* Sponsor Activations Hub */}
+      {isSponsorActivationsOpen && (
+        <SponsorActivationHub
+          activations={MOCK_SPONSOR_ACTIVATIONS.map(a => ({
+            ...a,
+            user_claimed: claimedActivations.includes(a.activation_id)
+          }))}
+          onClose={() => setIsSponsorActivationsOpen(false)}
+          onClaim={(act) => {
+            setClaimedActivations(prev => [...prev, act.activation_id]);
+            setCoins(prev => prev + (act.reward_coins || 0));
+            if (act.reward_xp) setXp(prev => prev + act.reward_xp!);
+            setToast({ message: `Claimed ${act.reward_coins || 0} coins from ${act.sponsor_name}!`, type: 'success' });
+          }}
+        />
+      )}
+
+      {/* Sponsor Portal */}
+      {isSponsorPortalOpen && currentSponsorId && (
+        <SponsorPortal
+          sponsorId={currentSponsorId}
+          sponsor={MOCK_SPONSORS.find(s => s.sponsor_id === currentSponsorId)!}
+          campaigns={MOCK_SPONSOR_CAMPAIGNS.filter(c => c.sponsor_id === currentSponsorId)}
+          dashboardMetrics={MOCK_SPONSOR_DASHBOARD_METRICS}
+          assets={MOCK_SPONSOR_ASSETS.filter(a => a.sponsor_id === currentSponsorId)}
+          auditLogs={MOCK_AUDIT_LOGS.filter(l => l.sponsor_id === currentSponsorId)}
+          userRole={effectiveRole}
+          onClose={() => setIsSponsorPortalOpen(false)}
+        />
+      )}
+
+      {/* Admin Portal */}
+      {isAdminPortalOpen && (effectiveRole === 'admin_analyst' || effectiveRole === 'admin_super') && (
+        <AdminPortal
+          platformMetrics={MOCK_ADMIN_PLATFORM_METRICS}
+          sponsors={MOCK_SPONSORS}
+          campaigns={MOCK_SPONSOR_CAMPAIGNS}
+          dashboardMetrics={MOCK_SPONSOR_DASHBOARD_METRICS}
+          assets={MOCK_SPONSOR_ASSETS}
+          auditLogs={MOCK_AUDIT_LOGS}
+          userRole={effectiveRole}
+          onClose={() => setIsAdminPortalOpen(false)}
+        />
+      )}
+
+      {/* DEV: Role Switcher */}
+      {FEATURE_FLAGS.DEV_ROLE_SWITCHER && (
+        <div className="fixed bottom-20 left-2 z-50">
+          <button
+            onClick={() => {
+              const roles: UserRole[] = ['user', 'sponsor_viewer', 'sponsor_manager', 'admin_analyst', 'admin_super'];
+              const currentIdx = roles.indexOf(devRoleOverride || 'user');
+              const nextRole = roles[(currentIdx + 1) % roles.length];
+              setDevRoleOverride(nextRole);
+              if (nextRole.startsWith('sponsor')) {
+                setCurrentSponsorId('sp_telebirr');
+              }
+            }}
+            className="flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-medium bg-gray-800 text-white shadow-lg"
+          >
+            <Activity size={10} />
+            {effectiveRole.replace(/_/g, ' ')}
+          </button>
+          {effectiveRole !== 'user' && (
+            <div className="flex gap-1 mt-1">
+              {(effectiveRole === 'sponsor_viewer' || effectiveRole === 'sponsor_manager') && (
+                <button
+                  onClick={() => { setCurrentSponsorId('sp_telebirr'); setIsSponsorPortalOpen(true); }}
+                  className="px-2 py-0.5 rounded text-[8px] bg-green-600 text-white"
+                >
+                  Sponsor Portal
+                </button>
+              )}
+              {(effectiveRole === 'admin_analyst' || effectiveRole === 'admin_super') && (
+                <button
+                  onClick={() => setIsAdminPortalOpen(true)}
+                  className="px-2 py-0.5 rounded text-[8px] bg-indigo-600 text-white"
+                >
+                  Admin Portal
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
     </div>
