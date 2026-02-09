@@ -367,11 +367,14 @@ export interface RankHistory {
 
 // =============================================
 // SHOWROOM LEAGUES (from Spec Pack - Agent 3)
+// Phase 2: Primary + Secondary Slots
 // =============================================
 
 export type ShowroomVenueType = 'coffee_shop' | 'sports_bar' | 'betting_shop' | 'university' | 'corporate' | 'stadium';
 export type ShowroomTier = 'bronze' | 'silver' | 'gold' | 'platinum';
 export type ShowroomVerificationStatus = 'pending' | 'verified' | 'suspended' | 'rejected';
+export type ShowroomMembershipType = 'PRIMARY' | 'SECONDARY';
+export type ShowroomSlotUnlockSource = 'LEVEL' | 'PURCHASE';
 
 export interface Showroom {
   showroom_id: string;
@@ -405,6 +408,7 @@ export interface Showroom {
 
   // Stats
   member_count: number;
+  primary_member_count: number;
   active_member_count: number;
   weekly_score: number;
   city_rank?: number;
@@ -420,14 +424,37 @@ export interface ShowroomMembership {
   membership_id: string;
   showroom_id: string;
   user_id: string;
+  membership_type: ShowroomMembershipType;
+  slot_index: 0 | 1 | 2; // 0=PRIMARY, 1=Secondary#1, 2=Secondary#2
   role: 'member' | 'co_admin' | 'admin';
   joined_via: 'qr_scan' | 'invite_link' | 'admin_add' | 'geo_suggest';
   join_latitude?: number;
   join_longitude?: number;
+  switch_locked_until?: string; // ISO timestamp — cooldown expiry
   is_active: boolean;
   last_active_at: string;
   points_contributed_this_gw: number;
   created_at: string;
+}
+
+// Phase 2: Slot unlock tracking
+export interface ShowroomSlot {
+  slot_index: 1 | 2;
+  is_unlocked: boolean;
+  unlock_source?: ShowroomSlotUnlockSource;
+  unlock_level?: number;
+  unlocked_at?: string;
+  wallet_tx_id?: string;
+}
+
+// Phase 2: User's complete showroom state
+export interface UserShowroomState {
+  primary: (ShowroomMembership & { showroom: Showroom }) | null;
+  secondaries: (ShowroomMembership & { showroom: Showroom })[];
+  slots: {
+    slot_1: ShowroomSlot | null;
+    slot_2: ShowroomSlot | null;
+  };
 }
 
 export interface QRToken {
@@ -449,8 +476,60 @@ export interface ShowroomLeaderboardEntry {
   rank: number;
   weekly_score: number;
   member_count: number;
+  primary_member_count: number;
   active_members: number;
 }
+
+// Phase 2: Slot pricing config
+export const SHOWROOM_SLOT_PRICING = {
+  slot_1: {
+    slot_index: 1 as const,
+    level_requirement: 10,
+    coin_price: 100,
+    birr_equivalent: 10,
+  },
+  slot_2: {
+    slot_index: 2 as const,
+    level_requirement: 25,
+    coin_price: 400,
+    birr_equivalent: 40,
+  },
+} as const;
+
+// Phase 2: Showroom hub matchday data
+export interface ShowroomHubData {
+  showroom: Showroom;
+  membership_type: ShowroomMembershipType;
+  members: ShowroomHubMember[];
+  weekly_score: number;
+  city_rank?: number;
+  contributes_to_rivalry: boolean;
+}
+
+export interface ShowroomHubMember {
+  user_id: string;
+  display_name: string;
+  avatar_id: string;
+  gameweek_points: number;
+  total_points: number;
+  rank: number;
+  rank_change: number;
+  is_primary_member: boolean;
+}
+
+// Phase 2: Audit event types
+export type ShowroomAuditEventType =
+  | 'JOIN'
+  | 'LEAVE'
+  | 'SET_PRIMARY'
+  | 'SWITCH_PRIMARY'
+  | 'SWITCH_SECONDARY'
+  | 'SLOT_UNLOCK_LEVEL'
+  | 'SLOT_UNLOCK_PURCHASE'
+  | 'CHECKIN'
+  | 'COOLDOWN_RESET'
+  | 'ADMIN_ACTION'
+  | 'SHOWROOM_SUSPENDED';
 
 // =============================================
 // CONTESTS & COMPETITIONS (from Spec Pack - Agent 5)
