@@ -24,6 +24,8 @@ export interface Database {
           coins: number;
           eth_balance: number;
           favorite_team: string | null;
+          role: string;
+          current_stage: number;
           created_at: string;
           updated_at: string;
         };
@@ -38,6 +40,8 @@ export interface Database {
           coins?: number;
           eth_balance?: number;
           favorite_team?: string | null;
+          role?: string;
+          current_stage?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -52,6 +56,8 @@ export interface Database {
           coins?: number;
           eth_balance?: number;
           favorite_team?: string | null;
+          role?: string;
+          current_stage?: number;
           updated_at?: string;
         };
       };
@@ -313,6 +319,54 @@ export interface Database {
           is_active?: boolean;
         };
       };
+      feature_flags: {
+        Row: {
+          id: string;
+          label: string;
+          description: string | null;
+          is_enabled: boolean;
+          required_stage: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          label: string;
+          description?: string | null;
+          is_enabled?: boolean;
+          required_stage?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          label?: string;
+          description?: string | null;
+          is_enabled?: boolean;
+          required_stage?: number;
+          updated_at?: string;
+        };
+      };
+      feature_flag_audit_logs: {
+        Row: {
+          id: string;
+          feature_id: string;
+          admin_user_id: string;
+          action: string;
+          old_value: Record<string, unknown> | null;
+          new_value: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          feature_id: string;
+          admin_user_id: string;
+          action: string;
+          old_value?: Record<string, unknown> | null;
+          new_value?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: never;
+      };
     };
     Views: {};
     Functions: {};
@@ -332,3 +386,5 @@ export type LeagueMember = Database['public']['Tables']['league_members']['Row']
 export type Transaction = Database['public']['Tables']['transactions']['Row'];
 export type LoginStreak = Database['public']['Tables']['login_streaks']['Row'];
 export type ChatMessage = Database['public']['Tables']['chat_messages']['Row'];
+export type FeatureFlag = Database['public']['Tables']['feature_flags']['Row'];
+export type FeatureFlagAuditLog = Database['public']['Tables']['feature_flag_audit_logs']['Row'];

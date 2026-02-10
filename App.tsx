@@ -35,6 +35,9 @@ import AdminPortal from './components/AdminPortal';
 import SponsorActivationCard from './components/SponsorActivationCard';
 import SponsorActivationHub from './components/SponsorActivationHub';
 import { calculateScore, generateRandomStats, MatchStats } from './scoring';
+import { useFeatureAccess } from './hooks/useFeatureAccess';
+import FeatureGate from './components/FeatureGate';
+import AdminPanel from './components/AdminPanel';
 
 // --- Sub-Components ---
 
@@ -279,6 +282,11 @@ const App: React.FC = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isFlashScoutOpen, setIsFlashScoutOpen] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+  // Feature Gating
+  const [userStageLevel] = useState(5); // Mock: all features visible (change to 0 to test locked)
+  const { canAccess, getStatus, isAdmin } = useFeatureAccess(null, userStageLevel);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
 
   // New Feature States
   const [isShowroomHubOpen, setIsShowroomHubOpen] = useState(false);
@@ -1237,6 +1245,15 @@ const App: React.FC = () => {
                 <GraduationCap size={16} />
              </button>
 
+             {isAdmin && (
+               <button
+                 onClick={() => setIsAdminPanelOpen(true)}
+                 className="bg-red-500/20 p-1.5 rounded-full hover:bg-red-500/30 text-red-300 transition mr-1"
+                 title="Admin Panel"
+               >
+                 <Settings size={16} />
+               </button>
+             )}
              <button onClick={toggleLanguage} className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded text-xs font-bold hover:bg-white/20">
                 <Globe size={14} />
                 {language.toUpperCase()}
@@ -1294,59 +1311,69 @@ const App: React.FC = () => {
         {activeTab === 'home' && (
           <div className="animate-in fade-in duration-300 space-y-6">
 
-            {/* Coffee Hour Banner */}
-            <CoffeeHourBanner
-              config={COFFEE_HOUR_CONFIG}
-              onClaim={handleCoffeeHourClaim}
-              hasClaimed={coffeeHourClaimed}
-            />
+            {/* Coffee Hour Banner + Daily Hub (Gated) */}
+            <FeatureGate status={getStatus('REWARDS_DAILY_CLAIM')} variant="overlay">
+              <CoffeeHourBanner
+                config={COFFEE_HOUR_CONFIG}
+                onClaim={handleCoffeeHourClaim}
+                hasClaimed={coffeeHourClaimed}
+              />
+              <div className="mt-4">
+                <DailyHub
+                  streak={loginStreak}
+                  quests={dailyQuests}
+                  onOpenTrivia={() => setShowTrivia(true)}
+                  onQuestAction={handleQuestComplete}
+                />
+              </div>
+            </FeatureGate>
 
-            {/* Daily Hub (New Feature) */}
-            <DailyHub
-              streak={loginStreak}
-              quests={dailyQuests}
-              onOpenTrivia={() => setShowTrivia(true)}
-              onQuestAction={handleQuestComplete}
-            />
-
-            {/* Quick Access Grid - New Features */}
+            {/* Quick Access Grid - New Features (Gated) */}
             <div className="grid grid-cols-4 gap-2">
-              <button
-                onClick={() => setIsShowroomHubOpen(true)}
-                className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-purple-300 transition"
-              >
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                  <MapPin size={18} className="text-purple-600" />
-                </div>
-                <span className="text-[10px] font-medium text-gray-700">Showrooms</span>
-              </button>
-              <button
-                onClick={() => setIsContestHubOpen(true)}
-                className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-yellow-300 transition"
-              >
-                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <Trophy size={18} className="text-yellow-600" />
-                </div>
-                <span className="text-[10px] font-medium text-gray-700">Contests</span>
-              </button>
-              <button
-                onClick={() => setIsMiniGamesOpen(true)}
-                className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-pink-300 transition"
-              >
-                <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                  <Gamepad2 size={18} className="text-pink-600" />
-                </div>
-                <span className="text-[10px] font-medium text-gray-700">Mini-Games</span>
-              </button>
-              <button
-                onClick={() => setIsCoinShopOpen(true)}
-                className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-amber-300 transition"
-              >
-                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                  <Coins size={18} className="text-amber-600" />
-                </div>
-                <span className="text-[10px] font-medium text-gray-700">Shop</span>
-              </button>
+              <FeatureGate status={getStatus('SHOWROOMS')} variant="disabled">
+                <button
+                  onClick={() => canAccess('SHOWROOMS') && setIsShowroomHubOpen(true)}
+                  className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-purple-300 transition w-full"
+                >
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                    <MapPin size={18} className="text-purple-600" />
+                  </div>
+                  <span className="text-[10px] font-medium text-gray-700">Showrooms</span>
+                </button>
+              </FeatureGate>
+              <FeatureGate status={getStatus('CONTESTS_PREMIUM')} variant="disabled">
+                <button
+                  onClick={() => canAccess('CONTESTS_PREMIUM') && setIsContestHubOpen(true)}
+                  className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-yellow-300 transition w-full"
+                >
+                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <Trophy size={18} className="text-yellow-600" />
+                  </div>
+                  <span className="text-[10px] font-medium text-gray-700">Contests</span>
+                </button>
+              </FeatureGate>
+              <FeatureGate status={getStatus('MINI_GAMES')} variant="disabled">
+                <button
+                  onClick={() => canAccess('MINI_GAMES') && setIsMiniGamesOpen(true)}
+                  className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-pink-300 transition w-full"
+                >
+                  <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                    <Gamepad2 size={18} className="text-pink-600" />
+                  </div>
+                  <span className="text-[10px] font-medium text-gray-700">Mini-Games</span>
+                </button>
+              </FeatureGate>
+              <FeatureGate status={getStatus('COINS_WALLET')} variant="disabled">
+                <button
+                  onClick={() => canAccess('COINS_WALLET') && setIsCoinShopOpen(true)}
+                  className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-amber-300 transition w-full"
+                >
+                  <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                    <Coins size={18} className="text-amber-600" />
+                  </div>
+                  <span className="text-[10px] font-medium text-gray-700">Shop</span>
+                </button>
+              </FeatureGate>
             </div>
 
             {/* Sponsored Rewards Carousel */}
@@ -1413,22 +1440,24 @@ const App: React.FC = () => {
               <Shirt className="absolute -bottom-4 -right-4 text-white/5 w-32 h-32 rotate-12" />
             </div>
 
-            {/* Flash Scout */}
-            <div onClick={() => setIsFlashScoutOpen(true)} className="bg-black rounded-xl p-3 flex items-center justify-between text-white border-l-4 border-pl-green shadow-lg cursor-pointer transition hover:bg-gray-900">
-                <div className="flex items-center gap-3">
-                    <div className="bg-pl-green text-black p-2 rounded-lg">
-                        <Zap size={20} fill="currentColor" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] text-pl-green font-bold uppercase tracking-wider">Flash Scout Alert</div>
-                        <div className="font-bold text-sm">Watkins Price Drop (-5%)</div>
-                        <div className="text-[10px] text-gray-400">Ends in 00:45:12</div>
-                    </div>
-                </div>
-                <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-bold hover:bg-white/20">
-                    View
-                </div>
-            </div>
+            {/* Flash Scout (Gated) */}
+            <FeatureGate status={getStatus('SPONSOR_PORTAL')} variant="overlay">
+              <div onClick={() => canAccess('SPONSOR_PORTAL') && setIsFlashScoutOpen(true)} className="bg-black rounded-xl p-3 flex items-center justify-between text-white border-l-4 border-pl-green shadow-lg cursor-pointer transition hover:bg-gray-900">
+                  <div className="flex items-center gap-3">
+                      <div className="bg-pl-green text-black p-2 rounded-lg">
+                          <Zap size={20} fill="currentColor" />
+                      </div>
+                      <div>
+                          <div className="text-[10px] text-pl-green font-bold uppercase tracking-wider">Flash Scout Alert</div>
+                          <div className="font-bold text-sm">Watkins Price Drop (-5%)</div>
+                          <div className="text-[10px] text-gray-400">Ends in 00:45:12</div>
+                      </div>
+                  </div>
+                  <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-bold hover:bg-white/20">
+                      View
+                  </div>
+              </div>
+            </FeatureGate>
 
             {/* Live In-Play Leaderboard Dashboard */}
              <div className="bg-gray-900 rounded-2xl p-4 text-white">
@@ -1757,7 +1786,11 @@ const App: React.FC = () => {
             </button>
         </div>
         <NavButton active={activeTab === 'stats'} icon={<BarChart2 />} label={t.stats} onClick={() => setActiveTab('stats')} />
-        <NavButton active={activeTab === 'wallet'} icon={<Wallet />} label={t.wallet} onClick={() => setActiveTab('wallet')} />
+        {canAccess('COINS_WALLET') ? (
+          <NavButton active={activeTab === 'wallet'} icon={<Wallet />} label={t.wallet} onClick={() => setActiveTab('wallet')} />
+        ) : (
+          <NavButton active={false} icon={<Lock />} label={t.wallet} onClick={() => setToast({ message: 'Unlock Coins at Stage 3', type: 'error' })} />
+        )}
       </nav>
 
       {/* Modals */}
@@ -1828,8 +1861,8 @@ const App: React.FC = () => {
         onAction={handleFlashScoutAction}
       />
 
-      {/* New Feature Modals */}
-      {isShowroomHubOpen && (
+      {/* New Feature Modals (with secondary access guard) */}
+      {isShowroomHubOpen && canAccess('SHOWROOMS') && (
         <ShowroomHub
           showrooms={MOCK_SHOWROOMS}
           userCheckedInShowrooms={checkedInShowrooms}
@@ -1838,7 +1871,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {isContestHubOpen && (
+      {isContestHubOpen && canAccess('CONTESTS_PREMIUM') && (
         <ContestHub
           contests={MOCK_CONTESTS}
           userLevel={userLevel}
@@ -1848,7 +1881,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {isCoinShopOpen && (
+      {isCoinShopOpen && canAccess('COINS_WALLET') && (
         <CoinShop
           bundles={COIN_BUNDLES}
           userCoins={coins}
@@ -1857,7 +1890,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {isMiniGamesOpen && (
+      {isMiniGamesOpen && canAccess('MINI_GAMES') && (
         <MiniGamesHub
           games={MINI_GAMES}
           userLevel={userLevel}
@@ -1865,6 +1898,14 @@ const App: React.FC = () => {
           dailyPlays={miniGamePlays}
           onClose={() => setIsMiniGamesOpen(false)}
           onPlayGame={handlePlayMiniGame}
+        />
+      )}
+
+      {/* Admin Panel */}
+      {isAdmin && (
+        <AdminPanel
+          isOpen={isAdminPanelOpen}
+          onClose={() => setIsAdminPanelOpen(false)}
         />
       )}
 
