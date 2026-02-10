@@ -42,7 +42,11 @@ export const TRANSLATIONS = {
     team_stats: "Team Stats",
     player_stats: "Player Stats",
     goals_conceded: "Goals Conceded",
-    goals_scored: "Goals Scored"
+    goals_scored: "Goals Scored",
+    feature_locked: "Feature Locked",
+    coming_soon: "Coming Soon",
+    unlock_at: "Unlock at Stage",
+    admin_panel: "Admin Panel"
   },
   am: {
     home: "መነሻ",
@@ -81,7 +85,11 @@ export const TRANSLATIONS = {
     team_stats: "የቡድን ስታትስቲክስ",
     player_stats: "የተጫዋች ስታትስቲክስ",
     goals_conceded: "የገባባቸው ጎሎች",
-    goals_scored: "ያገቡት ጎሎች"
+    goals_scored: "ያገቡት ጎሎች",
+    feature_locked: "ባህሪው ተቆልፏል",
+    coming_soon: "በቅርቡ ይመጣል",
+    unlock_at: "በደረጃ ይከፈታል",
+    admin_panel: "የአስተዳዳሪ ፓነል"
   }
 };
 
