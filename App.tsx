@@ -284,7 +284,7 @@ const App: React.FC = () => {
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
   // Feature Gating
-  const [userStageLevel] = useState(5); // Mock: all features visible (change to 0 to test locked)
+  const [userStageLevel] = useState(2); // Demo: Stage 2 — Rewards/Mini-Games unlocked, Coins/Showrooms/Contests locked
   const { canAccess, getStatus, isAdmin } = useFeatureAccess(null, userStageLevel);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
 
