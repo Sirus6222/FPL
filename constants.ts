@@ -1250,7 +1250,7 @@ export const MOCK_LEAGUES: League[] = [
   },
   // Weekly Jackpot
   { 
-    league_id: 4, name: "Weekly Jackpot", type: "prize", 
+    league_id: 4, name: "Weekly Grand Prize", type: "prize",
     rank: 12, rank_change: 3, members_count: 50, entry_fee: 100, prize_pool: 4500, code: "ADD123", manager_of_month: "Abebe B.",
     status: 'active', created_at: '2023-08-10',
     user_points: 65

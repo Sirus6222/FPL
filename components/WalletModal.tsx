@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { X, Smartphone, CreditCard, CheckCircle, Loader2, ArrowDownCircle, ArrowUpCircle, Coins, Sparkles } from 'lucide-react';
-import { CURRENCY_SYMBOL } from '../constants';
+import { CURRENCY_SYMBOL, COIN_BUNDLES } from '../constants';
 
-// Coin packages with ETB prices
-const COIN_PACKAGES = [
-  { id: 'pkg1', coins: 100, price: 10, bonus: 0, label: 'Starter' },
-  { id: 'pkg2', coins: 300, price: 25, bonus: 20, label: 'Popular' },
-  { id: 'pkg3', coins: 600, price: 45, bonus: 60, label: 'Best Value' },
-  { id: 'pkg4', coins: 1500, price: 100, bonus: 200, label: 'Pro' },
-];
+// Derive wallet coin packages from the canonical COIN_BUNDLES (first 4 tiers)
+const COIN_PACKAGES = COIN_BUNDLES.slice(0, 4).map(b => ({
+  id: b.bundle_id,
+  coins: b.coins,
+  price: b.price_etb,
+  bonus: b.bonus_coins,
+  label: b.name.replace(' Pack', '').replace(' Bundle', ''),
+}));
 
 interface WalletModalProps {
   isOpen: boolean;

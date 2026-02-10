@@ -77,15 +77,12 @@ interface LeagueDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   league: League | null;
-  onStake?: (amount: number, multiplier: number) => void;
+  onStake?: (amount: number, multiplier: number) => void; // deprecated — kept for interface compat
   userBalance?: number;
 }
 
 const LeagueDetailModal: React.FC<LeagueDetailModalProps> = ({ isOpen, onClose, league, onStake, userBalance = 150 }) => {
-  const [activeTab, setActiveTab] = useState<'Standings' | 'Matchups' | 'Pot' | 'Chat'>('Standings');
-  const [multiplier, setMultiplier] = useState(1.5);
-  const [stakeAmount, setStakeAmount] = useState(50);
-  const [hasStaked, setHasStaked] = useState(false);
+  const [activeTab, setActiveTab] = useState<'Standings' | 'Matchups' | 'Prizes' | 'Chat'>('Standings');
   const [expandedMatchup, setExpandedMatchup] = useState<string | null>(null);
   const [matchupView, setMatchupView] = useState<'players' | 'events' | 'analysis'>('players');
 
@@ -107,13 +104,6 @@ const LeagueDetailModal: React.FC<LeagueDetailModalProps> = ({ isOpen, onClose, 
   const matchups = MOCK_MATCHUPS;
   const pot = MOCK_POT_INFO;
   const breakdown = MOCK_BREAKDOWN;
-
-  const handleStake = () => {
-      if (onStake && stakeAmount <= pot.my_winnings_balance) {
-          onStake(stakeAmount, multiplier);
-          setHasStaked(true);
-      }
-  };
 
   const handleSendChat = () => {
     if (!chatInput.trim()) return;
@@ -217,7 +207,7 @@ const LeagueDetailModal: React.FC<LeagueDetailModalProps> = ({ isOpen, onClose, 
         {/* Tab Navigation */}
         <div className="px-4 -mt-6 relative z-20 shrink-0">
             <div className="bg-white rounded-xl shadow-lg border border-gray-100 flex p-1">
-                 {['Standings', 'Matchups', 'Pot', 'Chat'].map(tab => (
+                 {['Standings', 'Matchups', 'Prizes', 'Chat'].map(tab => (
                      <button
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
@@ -583,101 +573,61 @@ const LeagueDetailModal: React.FC<LeagueDetailModalProps> = ({ isOpen, onClose, 
                 </div>
             )}
 
-            {/* --- POT & STAKING TAB --- */}
-            {activeTab === 'Pot' && (
+            {/* --- PRIZES TAB (Compliant — Guaranteed Prizes, no staking) --- */}
+            {activeTab === 'Prizes' && (
                 <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-gradient-to-br from-eth-yellow to-orange-400 p-4 rounded-xl text-white shadow-md">
                             <div className="flex items-center gap-1 mb-1 text-white/80">
                                 <Trophy size={14} />
-                                <span className="text-[10px] font-bold uppercase">Season Pot</span>
+                                <span className="text-[10px] font-bold uppercase">Season Prize</span>
                             </div>
                             <div className="text-2xl font-bold">{pot.season_pot.toLocaleString()} <span className="text-xs">{CURRENCY_SYMBOL}</span></div>
-                            <div className="text-[9px] mt-1 bg-black/10 inline-block px-1.5 py-0.5 rounded">Pays out GW38</div>
+                            <div className="text-[9px] mt-1 bg-black/10 inline-block px-1.5 py-0.5 rounded">Awarded GW38</div>
                         </div>
 
                         <div className="bg-gradient-to-br from-pl-green to-emerald-600 p-4 rounded-xl text-white shadow-md">
                             <div className="flex items-center gap-1 mb-1 text-white/80">
                                 <Coins size={14} />
-                                <span className="text-[10px] font-bold uppercase">Weekly Pot</span>
+                                <span className="text-[10px] font-bold uppercase">Weekly Prize</span>
                             </div>
                             <div className="text-2xl font-bold">{pot.weekly_pot.toLocaleString()} <span className="text-xs">{CURRENCY_SYMBOL}</span></div>
                             <div className="text-[9px] mt-1 bg-black/10 inline-block px-1.5 py-0.5 rounded">Last Winner: {pot.last_week_winner}</div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 relative overflow-hidden">
-                        <div className="flex justify-between items-start mb-4 relative z-10">
-                            <div>
-                                <h3 className="font-bold text-gray-900 flex items-center gap-2"><Target size={16} className="text-pl-pink"/> Weekly Accumulator</h3>
-                                <p className="text-xs text-gray-500">Stake winnings to multiply next week's payout.</p>
-                            </div>
-                            <div className="bg-gray-100 px-3 py-1 rounded-lg text-xs font-bold text-gray-700">
-                                Bal: {pot.my_winnings_balance} {CURRENCY_SYMBOL}
-                            </div>
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                        <h3 className="font-bold text-sm text-blue-900 flex items-center gap-2 mb-2"><Trophy size={16} className="text-blue-500"/> Prize Structure</h3>
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-xs"><span className="text-blue-700">1st Place (Season)</span><span className="font-bold text-blue-900">15,000 {CURRENCY_SYMBOL}</span></div>
+                            <div className="flex justify-between text-xs"><span className="text-blue-700">2nd Place</span><span className="font-bold text-blue-900">7,000 {CURRENCY_SYMBOL}</span></div>
+                            <div className="flex justify-between text-xs"><span className="text-blue-700">3rd Place</span><span className="font-bold text-blue-900">3,000 {CURRENCY_SYMBOL}</span></div>
+                            <div className="flex justify-between text-xs"><span className="text-blue-700">Weekly Top Performer</span><span className="font-bold text-blue-900">1,200 {CURRENCY_SYMBOL}</span></div>
                         </div>
-
-                        <div className="mb-6 relative z-10">
-                            <div className="flex justify-between text-xs font-bold text-gray-500 mb-2">
-                                <span>Risk: Low</span>
-                                <span>Risk: High</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="1.1"
-                                max="3.0"
-                                step="0.1"
-                                value={multiplier}
-                                onChange={(e) => setMultiplier(parseFloat(e.target.value))}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-pl-purple"
-                            />
-                            <div className="flex justify-between mt-2">
-                                <div className="text-center">
-                                    <div className="text-[10px] text-gray-400">Multiplier</div>
-                                    <div className="font-bold text-lg text-pl-purple">x{multiplier.toFixed(1)}</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-[10px] text-gray-400">Potential Return</div>
-                                    <div className="font-bold text-lg text-pl-green">{(stakeAmount * multiplier).toFixed(0)} {CURRENCY_SYMBOL}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={handleStake}
-                            disabled={pot.my_winnings_balance < stakeAmount || hasStaked}
-                            className={`w-full font-bold py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2 relative z-10 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                hasStaked ? 'bg-pl-green text-black' : 'bg-black text-white hover:bg-gray-800'
-                            }`}
-                        >
-                            {hasStaked ? (
-                                <>✓ Staked for GW38</>
-                            ) : (
-                                <><Wallet size={16} /> Stake {stakeAmount} {CURRENCY_SYMBOL}</>
-                            )}
-                        </button>
-
-                        <Target className="absolute -bottom-6 -right-6 text-gray-50 w-32 h-32" />
                     </div>
 
                     <div>
-                        <h4 className="font-bold text-xs text-gray-500 uppercase mb-2">Recent Winners</h4>
+                        <h4 className="font-bold text-xs text-gray-500 uppercase mb-2">Recent Top Performers</h4>
                         <div className="space-y-2">
                             <div className="bg-white p-3 rounded-lg border border-gray-100 flex justify-between items-center">
                                 <span className="text-xs font-bold">GW36</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-600">Dawit T</span>
+                                    <span className="text-xs text-gray-600">Dawit T (78 pts)</span>
                                     <span className="text-xs font-bold text-pl-green bg-green-50 px-2 py-0.5 rounded">+800 {CURRENCY_SYMBOL}</span>
                                 </div>
                             </div>
                             <div className="bg-white p-3 rounded-lg border border-gray-100 flex justify-between items-center opacity-70">
                                 <span className="text-xs font-bold">GW35</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-600">You</span>
+                                    <span className="text-xs text-gray-600">You (65 pts)</span>
                                     <span className="text-xs font-bold text-pl-green bg-green-50 px-2 py-0.5 rounded">+450 {CURRENCY_SYMBOL}</span>
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center">
+                        <p className="text-[10px] text-gray-500">This is a Game of Skill. Prizes are guaranteed by the platform and are not funded by pooled entry fees. Performance is based on your strategic decisions as a fantasy football manager.</p>
                     </div>
                 </div>
             )}

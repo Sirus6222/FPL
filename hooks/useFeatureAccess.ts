@@ -15,9 +15,21 @@ export interface FeatureStatus {
   isAccessible: boolean;
   isGloballyEnabled: boolean;
   isStageUnlocked: boolean;
+  isNextStage: boolean; // true if feature is in the next unlock stage (tease-worthy)
   requiredStage: number;
   userStage: number;
   lockMessage: string;
+}
+
+/** Pick the right FeatureGate variant based on progressive unlock logic:
+ *  - accessible → no gate (children render as-is)
+ *  - next stage → show locked/teased (overlay or disabled)
+ *  - further away → hide completely for cleaner UI
+ */
+export function getGateVariant(status: FeatureStatus, teasedVariant: 'overlay' | 'disabled' = 'disabled'): 'hide' | 'overlay' | 'disabled' {
+  if (status.isAccessible) return teasedVariant; // won't matter, gate passes through
+  if (status.isNextStage) return teasedVariant;
+  return 'hide';
 }
 
 interface UseFeatureAccessReturn {
@@ -115,11 +127,14 @@ export function useFeatureAccess(
     const reqStage = flag?.required_stage ?? meta.stageRequired;
     const enabled = flag?.is_enabled ?? false;
     const stageOk = userStage >= reqStage;
+    // "Next stage" = required stage is exactly 1 above the user's current stage
+    const isNextStage = !stageOk && reqStage === userStage + 1;
     return {
       key,
       isAccessible: enabled && stageOk,
       isGloballyEnabled: enabled,
       isStageUnlocked: stageOk,
+      isNextStage,
       requiredStage: reqStage,
       userStage,
       lockMessage: !enabled

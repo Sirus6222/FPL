@@ -246,11 +246,45 @@ const OnboardingCoach: React.FC<OnboardingCoachProps> = ({ step, onNext, onDismi
 
   const handleNext = () => {
     setExpandedDetails(false);
-    if (onAction && step === 'TRANSFERS_INTRO' && !isInWalkthrough) {
-      onAction('GOTO_TRANSFERS');
-    } else {
-      onNext();
+    // Navigate the user to the relevant tab at specific walkthrough steps
+    if (onAction) {
+      if (step === 'SQUAD_RULES') {
+        onAction('GOTO_TEAM');
+        onNext();
+        return;
+      }
+      if (step === 'CAPTAINCY') {
+        onAction('GOTO_TEAM');
+        onNext();
+        return;
+      }
+      if (step === 'TRANSFERS_INTRO') {
+        onAction('GOTO_TRANSFERS');
+        onNext();
+        return;
+      }
+      if (step === 'CHIPS_EXPLAINED') {
+        onAction('GOTO_TEAM');
+        onNext();
+        return;
+      }
+      if (step === 'LEAGUES_INTRO') {
+        onAction('GOTO_LEAGUES');
+        onNext();
+        return;
+      }
+      if (step === 'COINS_AND_XP') {
+        onAction('GOTO_HOME');
+        onNext();
+        return;
+      }
+      if (step === 'POINTS') {
+        onAction('GOTO_STATS');
+        onNext();
+        return;
+      }
     }
+    onNext();
   };
 
   const handleBack = () => {

@@ -35,7 +35,7 @@ import AdminPortal from './components/AdminPortal';
 import SponsorActivationCard from './components/SponsorActivationCard';
 import SponsorActivationHub from './components/SponsorActivationHub';
 import { calculateScore, generateRandomStats, MatchStats } from './scoring';
-import { useFeatureAccess } from './hooks/useFeatureAccess';
+import { useFeatureAccess, getGateVariant } from './hooks/useFeatureAccess';
 import FeatureGate from './components/FeatureGate';
 import AdminPanel from './components/AdminPanel';
 
@@ -960,7 +960,14 @@ const App: React.FC = () => {
   const handleTutorialAction = (action: string) => {
       if (action === 'GOTO_TRANSFERS') {
           setActiveTab('transfers');
-          setTutorialStep('MARKET_GUIDE');
+      } else if (action === 'GOTO_TEAM') {
+          setActiveTab('team');
+      } else if (action === 'GOTO_LEAGUES') {
+          setActiveTab('leagues');
+      } else if (action === 'GOTO_STATS') {
+          setActiveTab('stats');
+      } else if (action === 'GOTO_HOME') {
+          setActiveTab('home');
       } else if (action.startsWith('GOTO_STEP_')) {
           const step = action.replace('GOTO_STEP_', '') as TutorialStep;
           setTutorialStep(step);
@@ -1052,12 +1059,6 @@ const App: React.FC = () => {
           showToast(`Scouting ${player.name}. Find them in transfers!`, 'success');
       }
       setIsFlashScoutOpen(false);
-  }, []);
-
-  // Handle League Stake
-  const handleLeagueStake = useCallback((amount: number, multiplier: number) => {
-      const potentialWin = Math.floor(amount * multiplier);
-      showToast(`Staked ${amount} ETB! Win ${potentialWin} ETB if you top GW38!`, 'success');
   }, []);
 
   // Handle Showroom Check-in
@@ -1312,7 +1313,7 @@ const App: React.FC = () => {
           <div className="animate-in fade-in duration-300 space-y-6">
 
             {/* Coffee Hour Banner + Daily Hub (Gated) */}
-            <FeatureGate status={getStatus('REWARDS_DAILY_CLAIM')} variant="overlay">
+            <FeatureGate status={getStatus('REWARDS_DAILY_CLAIM')} variant={getGateVariant(getStatus('REWARDS_DAILY_CLAIM'), 'overlay')}>
               <CoffeeHourBanner
                 config={COFFEE_HOUR_CONFIG}
                 onClaim={handleCoffeeHourClaim}
@@ -1330,7 +1331,7 @@ const App: React.FC = () => {
 
             {/* Quick Access Grid - New Features (Gated) */}
             <div className="grid grid-cols-4 gap-2">
-              <FeatureGate status={getStatus('SHOWROOMS')} variant="disabled">
+              <FeatureGate status={getStatus('SHOWROOMS')} variant={getGateVariant(getStatus('SHOWROOMS'))}>
                 <button
                   onClick={() => canAccess('SHOWROOMS') && setIsShowroomHubOpen(true)}
                   className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-purple-300 transition w-full"
@@ -1341,7 +1342,7 @@ const App: React.FC = () => {
                   <span className="text-[10px] font-medium text-gray-700">Showrooms</span>
                 </button>
               </FeatureGate>
-              <FeatureGate status={getStatus('CONTESTS_PREMIUM')} variant="disabled">
+              <FeatureGate status={getStatus('CONTESTS_PREMIUM')} variant={getGateVariant(getStatus('CONTESTS_PREMIUM'))}>
                 <button
                   onClick={() => canAccess('CONTESTS_PREMIUM') && setIsContestHubOpen(true)}
                   className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-yellow-300 transition w-full"
@@ -1352,7 +1353,7 @@ const App: React.FC = () => {
                   <span className="text-[10px] font-medium text-gray-700">Contests</span>
                 </button>
               </FeatureGate>
-              <FeatureGate status={getStatus('MINI_GAMES')} variant="disabled">
+              <FeatureGate status={getStatus('MINI_GAMES')} variant={getGateVariant(getStatus('MINI_GAMES'))}>
                 <button
                   onClick={() => canAccess('MINI_GAMES') && setIsMiniGamesOpen(true)}
                   className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-pink-300 transition w-full"
@@ -1363,7 +1364,7 @@ const App: React.FC = () => {
                   <span className="text-[10px] font-medium text-gray-700">Mini-Games</span>
                 </button>
               </FeatureGate>
-              <FeatureGate status={getStatus('COINS_WALLET')} variant="disabled">
+              <FeatureGate status={getStatus('COINS_WALLET')} variant={getGateVariant(getStatus('COINS_WALLET'))}>
                 <button
                   onClick={() => canAccess('COINS_WALLET') && setIsCoinShopOpen(true)}
                   className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col items-center gap-1 hover:border-amber-300 transition w-full"
@@ -1376,8 +1377,9 @@ const App: React.FC = () => {
               </FeatureGate>
             </div>
 
-            {/* Sponsored Rewards Carousel */}
+            {/* Sponsored Rewards Carousel (Gated with SPONSOR_PORTAL) */}
             {FEATURE_FLAGS.SPONSOR_ACTIVATIONS && MOCK_SPONSOR_ACTIVATIONS.filter(a => a.is_active && !claimedActivations.includes(a.activation_id)).length > 0 && (
+              <FeatureGate status={getStatus('SPONSOR_PORTAL')} variant={getGateVariant(getStatus('SPONSOR_PORTAL'), 'overlay')}>
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="font-bold text-sm text-gray-800 flex items-center gap-1.5">
@@ -1406,6 +1408,7 @@ const App: React.FC = () => {
                   ))}
                 </div>
               </div>
+              </FeatureGate>
             )}
 
             {/* Gameweek Deadline Card */}
@@ -1441,7 +1444,7 @@ const App: React.FC = () => {
             </div>
 
             {/* Flash Scout (Gated) */}
-            <FeatureGate status={getStatus('SPONSOR_PORTAL')} variant="overlay">
+            <FeatureGate status={getStatus('SPONSOR_PORTAL')} variant={getGateVariant(getStatus('SPONSOR_PORTAL'), 'overlay')}>
               <div onClick={() => canAccess('SPONSOR_PORTAL') && setIsFlashScoutOpen(true)} className="bg-black rounded-xl p-3 flex items-center justify-between text-white border-l-4 border-pl-green shadow-lg cursor-pointer transition hover:bg-gray-900">
                   <div className="flex items-center gap-3">
                       <div className="bg-pl-green text-black p-2 rounded-lg">
@@ -1706,8 +1709,8 @@ const App: React.FC = () => {
                     <div className="bg-gradient-to-r from-eth-yellow to-orange-400 rounded-xl p-4 text-white shadow-lg">
                         <div className="flex justify-between items-start">
                             <div>
-                                <h4 className="font-bold text-lg text-black/80">Weekly Jackpot</h4>
-                                <p className="text-black/60 text-sm">Win up to 50,000 ETB</p>
+                                <h4 className="font-bold text-lg text-black/80">Weekly Grand Prize</h4>
+                                <p className="text-black/60 text-sm">Earn up to 50,000 ETB</p>
                             </div>
                             <Trophy className="text-black/20 w-12 h-12" />
                         </div>
@@ -1788,9 +1791,9 @@ const App: React.FC = () => {
         <NavButton active={activeTab === 'stats'} icon={<BarChart2 />} label={t.stats} onClick={() => setActiveTab('stats')} />
         {canAccess('COINS_WALLET') ? (
           <NavButton active={activeTab === 'wallet'} icon={<Wallet />} label={t.wallet} onClick={() => setActiveTab('wallet')} />
-        ) : (
+        ) : getStatus('COINS_WALLET').isNextStage ? (
           <NavButton active={false} icon={<Lock />} label={t.wallet} onClick={() => setToast({ message: 'Unlock Coins at Stage 3', type: 'error' })} />
-        )}
+        ) : null}
       </nav>
 
       {/* Modals */}
@@ -1827,7 +1830,6 @@ const App: React.FC = () => {
         isOpen={!!selectedLeagueDetail}
         onClose={() => setSelectedLeagueDetail(null)}
         league={selectedLeagueDetail}
-        onStake={handleLeagueStake}
         userBalance={balance}
       />
 

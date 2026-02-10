@@ -114,9 +114,10 @@ const ContestHub: React.FC<ContestHubProps> = ({
             <ul className="text-[10px] text-blue-700 space-y-0.5">
               <li>• Enter contests using coins (some are free!)</li>
               <li>• Compete based on your gameweek performance</li>
-              <li>• Top performers win guaranteed prizes</li>
-              <li>• Higher tiers = bigger prizes, higher stakes</li>
+              <li>• Top performers earn guaranteed prizes</li>
+              <li>• Higher tiers = bigger prizes, higher entry fees</li>
             </ul>
+            <p className="text-[9px] text-blue-500 mt-1.5 italic">This is a Game of Skill. Prizes are guaranteed by the platform and are not funded by entry fees.</p>
           </div>
 
           {/* Active Contests */}

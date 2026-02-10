@@ -486,13 +486,13 @@ export const SHOWROOM_SLOT_PRICING = {
     slot_index: 1 as const,
     level_requirement: 10,
     coin_price: 100,
-    birr_equivalent: 10,
+    birr_equivalent: 20,
   },
   slot_2: {
     slot_index: 2 as const,
     level_requirement: 25,
     coin_price: 400,
-    birr_equivalent: 40,
+    birr_equivalent: 80,
   },
 } as const;
 
